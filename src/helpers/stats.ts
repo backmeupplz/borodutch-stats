@@ -7,10 +7,10 @@ async function updateStats() {
   console.info('Started updating')
   const start = new Date()
 
-  const voicyStats = (await axios.get(
+  stats.voicy = (await axios.get(
     'https://pay.voicybot.com/statsfornikita'
   )).data
-  stats.voicy = voicyStats
+  stats.mt = (await axios.get('https://backend.mamkin.trade/stats')).data
 
   const end = new Date()
   console.info(
