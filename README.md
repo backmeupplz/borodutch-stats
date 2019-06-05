@@ -10,9 +10,9 @@
 
 ## Environment variables
 
-| Name    | Description               |
-| ------- | ------------------------- |
-| `MONGO` | URL of the mongo database |
+| Name         | Description        |
+| ------------ | ------------------ |
+| `CLOUDFLARE` | Cloudflare API key |
 
 Also, please, consider looking at `.env.sample`.
 
