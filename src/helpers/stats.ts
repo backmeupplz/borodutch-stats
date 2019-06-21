@@ -2,6 +2,8 @@
 import axios from 'axios'
 import { getMT } from './mt'
 import { getArbeitBot } from './arbeitbot'
+import { getShieldy } from './shieldy'
+import { getTemply } from './temply'
 
 export let stats: any = {}
 
@@ -9,6 +11,10 @@ async function updateStats() {
   console.info('Started updating')
   const start = new Date()
 
+  // + Temply
+  stats.temply = await getTemply()
+  // + Shieldy
+  stats.shieldy = await getShieldy()
   // + Arbeitbot
   stats.arbeitbot = await getArbeitBot()
   // + Mamkin Trade
@@ -39,8 +45,6 @@ async function updateStats() {
     )
   }
   console.log('Got @golden_borodutch data')
-  // Shieldy
-  // Temply
   // Randymbot
   // Banofbot
   // TLGCoin
