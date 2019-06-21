@@ -9,24 +9,24 @@ async function updateStats() {
   console.info('Started updating')
   const start = new Date()
 
-  // Arbeitbot
+  // + Arbeitbot
   stats.arbeitbot = await getArbeitBot()
-  // Mamkin Trade
+  // + Mamkin Trade
   stats.mt = await getMT()
-  // Voicy
+  // + Voicy
   stats.voicy = {
     stats: (await axios.get('https://pay.voicybot.com/statsfornikita')).data,
     cloudflare: await cloudflareData('a2931825c44695714557a87d1ceb4699')
   }
-  // Fondu
+  // + Fondu
   stats.fondu = await cloudflareData('1ec35cf14fe9fdcd97290a42af2deee8')
-  // Borodutch
+  // + Borodutch
   stats.borodutch = await cloudflareData('1f2511a68b81a60b7280ebbb3c61291d')
-  // Please no
+  // + Please no
   stats.pleaseno = await cloudflareData('40a2eeccaffd2df433952dc4ac924dde')
-  // Resetbot
+  // + Resetbot
   stats.resetbot = await cloudflareData('5310b8bd048921d0d433392061172c90')
-  // Golden borodutch
+  // + Golden borodutch
   console.log('Getting @golden_borodutch data')
   const goldenBorodutch = (await axios.get('https://t.me/golden_borodutch'))
     .data
