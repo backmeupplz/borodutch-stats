@@ -1,5 +1,7 @@
 // Dependencies
 import axios from 'axios'
+import { getMT } from './mt'
+import { getArbeitBot } from './arbeitbot'
 
 export let stats: any = {}
 
@@ -7,19 +9,17 @@ async function updateStats() {
   console.info('Started updating')
   const start = new Date()
 
+  // Arbeitbot
+  stats.arbeitbot = await getArbeitBot()
+  // Mamkin Trade
+  stats.mt = await getMT()
   // Voicy
   stats.voicy = {
     stats: (await axios.get('https://pay.voicybot.com/statsfornikita')).data,
-    cloudflare: await cloudflareData('a2931825c44695714557a87d1ceb4699'),
+    cloudflare: await cloudflareData('a2931825c44695714557a87d1ceb4699')
   }
-  // Mamkin Trade
-  stats.mt = (await axios.get('https://backend.mamkin.trade/stats')).data
   // Fondu
   stats.fondu = await cloudflareData('1ec35cf14fe9fdcd97290a42af2deee8')
-  // Arbeitbot
-  stats.arbeitbot = {
-    clouflare: await cloudflareData('23655bf636aed23a2311f10f64dbb00a'),
-  }
   // Borodutch
   stats.borodutch = await cloudflareData('1f2511a68b81a60b7280ebbb3c61291d')
   // Please no
@@ -27,6 +27,7 @@ async function updateStats() {
   // Resetbot
   stats.resetbot = await cloudflareData('5310b8bd048921d0d433392061172c90')
   // Golden borodutch
+  console.log('Getting @golden_borodutch data')
   const goldenBorodutch = (await axios.get('https://t.me/golden_borodutch'))
     .data
   stats.goldenBorodutch = {
@@ -35,8 +36,14 @@ async function updateStats() {
         .exec(goldenBorodutch)[1]
         .replace(' ', ''),
       10
-    ),
+    )
   }
+  console.log('Got @golden_borodutch data')
+  // Shieldy
+  // Temply
+  // Randymbot
+  // Banofbot
+  // TLGCoin
 
   const end = new Date()
   console.info(
@@ -60,19 +67,21 @@ setTimeout(async () => {
   }
 }, 10 * 60 * 1000)
 
-async function cloudflareData(id: string) {
+export async function cloudflareData(id: string) {
+  console.log(`Getting Cloudflare data for ${id}`)
   const data = (await axios.get(
     `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-172800`,
     {
       headers: {
         'X-Auth-Key': process.env.CLOUDFLARE,
-        'X-Auth-Email': 'backmeupplz@gmail.com',
-      },
+        'X-Auth-Email': 'backmeupplz@gmail.com'
+      }
     }
   )).data
   const result = []
   for (const unit of data.result.timeseries) {
     result.push(unit.requests.all)
   }
+  console.log(`Got Cloudflare data for ${id}`)
   return result
 }
