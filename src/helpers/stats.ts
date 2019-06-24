@@ -63,7 +63,7 @@ async function updateStats() {
 
 let updating = false
 updateStats()
-setTimeout(async () => {
+setInterval(async () => {
   if (updating) {
     return
   }
