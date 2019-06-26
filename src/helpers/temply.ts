@@ -14,7 +14,7 @@ export async function getTemply() {
   const tCount = (await User.aggregate(templatesCount).toArray())[0].templates
   await connection.close()
   return {
-    userDaily,
+    userDaily: userDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
     userCount,
     templatesCount: tCount,
   }

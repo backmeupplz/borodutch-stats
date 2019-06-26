@@ -21,7 +21,7 @@ export async function getTlgcoin() {
   ]).toArray())[0].totalAmount
   await connection.close()
   return {
-    userDaily,
+    userDaily: userDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
     userCount,
     coinsCount,
   }

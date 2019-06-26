@@ -15,7 +15,7 @@ export async function getRandym() {
   const raffleCount = await Raffle.find().count()
   await connection.close()
   return {
-    chatDaily,
+    chatDaily: chatDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
     chatCount,
     raffleDaily,
     raffleCount,
