@@ -16,9 +16,9 @@ export async function getArbeitBot() {
   const userCount = await User.find().count()
   await connection.close()
   return {
-    jobDaily: jobDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    jobDaily: jobDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     jobCount,
-    userDaily: userDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    userDaily: userDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     userCount,
     website: await cloudflareData('23655bf636aed23a2311f10f64dbb00a'),
   }

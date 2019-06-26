@@ -12,7 +12,7 @@ export async function getShieldy() {
   const chatCount = await Chat.find().count()
   await connection.close()
   return {
-    chatDaily: chatDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    chatDaily: chatDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     chatCount,
   }
 }

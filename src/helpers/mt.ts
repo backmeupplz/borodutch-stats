@@ -17,9 +17,9 @@ export async function getMT() {
   const userCount = await User.find().countDocuments()
   await connection.close()
   return {
-    orderDaily: orderDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    orderDaily: orderDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     orderCount,
-    userDaily: userDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    userDaily: userDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     userCount,
     website: (await axios.get('https://backend.mamkin.trade/stats')).data,
   }

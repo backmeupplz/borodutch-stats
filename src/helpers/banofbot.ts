@@ -18,11 +18,11 @@ export async function getBanofbot() {
   const requestCount = await Request.find().count()
   await connection.close()
   return {
-    userDaily: userDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    userDaily: userDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     userCount,
-    chatDaily: chatDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    chatDaily: chatDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     chatCount,
-    requestDaily: requestDaily.sort((a, b) => (a._id > b._id ? -1 : 1)),
+    requestDaily: requestDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
     requestCount,
   }
 }
