@@ -133,7 +133,7 @@ export async function cloudflareData(id: string) {
   try {
     console.log(`Getting Cloudflare data for ${id}`)
     const data = (await axios.get(
-      `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-172800`,
+      `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-86400`,
       {
         headers: {
           'X-Auth-Key': process.env.CLOUDFLARE,
