@@ -15,45 +15,97 @@ async function updateStats() {
   const start = new Date()
 
   // TLGCoin
-  stats.tlgcoin = await getTlgcoin()
+  try {
+    stats.tlgcoin = await getTlgcoin()
+  } catch (err) {
+    console.log(err)
+  }
   // Banofbot
-  stats.banofbot = await getBanofbot()
+  try {
+    stats.banofbot = await getBanofbot()
+  } catch (err) {
+    console.log(err)
+  }
   // Randymbot
-  stats.randym = await getRandym()
+  try {
+    stats.randym = await getRandym()
+  } catch (err) {
+    console.log(err)
+  }
   // Temply
-  stats.temply = await getTemply()
+  try {
+    stats.temply = await getTemply()
+  } catch (err) {
+    console.log(err)
+  }
   // Shieldy
-  stats.shieldy = await getShieldy()
+  try {
+    stats.shieldy = await getShieldy()
+  } catch (err) {
+    console.log(err)
+  }
   // Arbeitbot
-  stats.arbeitbot = await getArbeitBot()
+  try {
+    stats.arbeitbot = await getArbeitBot()
+  } catch (err) {
+    console.log(err)
+  }
   // Mamkin Trade
-  stats.mt = await getMT()
+  try {
+    stats.mt = await getMT()
+  } catch (err) {
+    console.log(err)
+  }
   // Voicy
-  stats.voicy = {
-    stats: (await axios.get('https://pay.voicybot.com/statsfornikita')).data,
-    cloudflare: await cloudflareData('a2931825c44695714557a87d1ceb4699'),
+  try {
+    stats.voicy = {
+      stats: (await axios.get('https://pay.voicybot.com/statsfornikita')).data,
+      cloudflare: await cloudflareData('a2931825c44695714557a87d1ceb4699'),
+    }
+  } catch (err) {
+    console.log(err)
   }
   // Fondu
-  stats.fondu = await cloudflareData('1ec35cf14fe9fdcd97290a42af2deee8')
-  // Borodutch
-  stats.borodutch = await cloudflareData('1f2511a68b81a60b7280ebbb3c61291d')
-  // Please no
-  stats.pleaseno = await cloudflareData('40a2eeccaffd2df433952dc4ac924dde')
-  // Resetbot
-  stats.resetbot = await cloudflareData('5310b8bd048921d0d433392061172c90')
-  // Golden borodutch
-  console.log('Getting @golden_borodutch data')
-  const goldenBorodutch = (await axios.get('https://t.me/golden_borodutch'))
-    .data
-  stats.goldenBorodutch = {
-    subCount: parseInt(
-      /<div class="tgme_page_extra">(.+) members/
-        .exec(goldenBorodutch)[1]
-        .replace(' ', ''),
-      10,
-    ),
+  try {
+    stats.fondu = await cloudflareData('1ec35cf14fe9fdcd97290a42af2deee8')
+  } catch (err) {
+    console.log(err)
   }
-  console.log('Got @golden_borodutch data')
+  // Borodutch
+  try {
+    stats.borodutch = await cloudflareData('1f2511a68b81a60b7280ebbb3c61291d')
+  } catch (err) {
+    console.log(err)
+  }
+  // Please no
+  try {
+    stats.pleaseno = await cloudflareData('40a2eeccaffd2df433952dc4ac924dde')
+  } catch (err) {
+    console.log(err)
+  }
+  // Resetbot
+  try {
+    stats.resetbot = await cloudflareData('5310b8bd048921d0d433392061172c90')
+  } catch (err) {
+    console.log(err)
+  }
+  // Golden borodutch
+  try {
+    console.log('Getting @golden_borodutch data')
+    const goldenBorodutch = (await axios.get('https://t.me/golden_borodutch'))
+      .data
+    stats.goldenBorodutch = {
+      subCount: parseInt(
+        /<div class="tgme_page_extra">(.+) members/
+          .exec(goldenBorodutch)[1]
+          .replace(' ', ''),
+        10,
+      ),
+    }
+    console.log('Got @golden_borodutch data')
+  } catch (err) {
+    console.log(err)
+  }
 
   const end = new Date()
   console.info(
