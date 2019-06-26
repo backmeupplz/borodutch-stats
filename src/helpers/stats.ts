@@ -130,20 +130,25 @@ setInterval(async () => {
 }, 10 * 60 * 1000)
 
 export async function cloudflareData(id: string) {
-  console.log(`Getting Cloudflare data for ${id}`)
-  const data = (await axios.get(
-    `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-172800`,
-    {
-      headers: {
-        'X-Auth-Key': process.env.CLOUDFLARE,
-        'X-Auth-Email': 'backmeupplz@gmail.com',
+  try {
+    console.log(`Getting Cloudflare data for ${id}`)
+    const data = (await axios.get(
+      `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-172800`,
+      {
+        headers: {
+          'X-Auth-Key': process.env.CLOUDFLARE,
+          'X-Auth-Email': 'backmeupplz@gmail.com',
+        },
       },
-    },
-  )).data
-  const result = []
-  for (const unit of data.result.timeseries) {
-    result.push(unit.requests.all)
+    )).data
+    const result = []
+    for (const unit of data.result.timeseries) {
+      result.push(unit.requests.all)
+    }
+    console.log(`Got Cloudflare data for ${id}`)
+    return result
+  } catch (err) {
+    console.log(err)
+    return []
   }
-  console.log(`Got Cloudflare data for ${id}`)
-  return result
 }
