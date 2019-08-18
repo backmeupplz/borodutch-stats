@@ -1,6 +1,7 @@
 // Dependencies
 import { dailyCreatedConfig } from './aggregations'
 import { createConnection } from 'mongoose'
+import { fixAggregation } from './fixAggregations'
 
 export async function getTlgcoin() {
   const connection = await createConnection(process.env.TLGCOIN, {
@@ -21,7 +22,9 @@ export async function getTlgcoin() {
   ]).toArray())[0].totalAmount
   await connection.close()
   return {
-    userDaily: userDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
+    userDaily: fixAggregation(
+      userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ),
     userCount,
     coinsCount,
   }

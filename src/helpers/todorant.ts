@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { createConnection } from 'mongoose'
 import { dailyCreatedConfig } from './aggregations'
+import { fixAggregation } from './fixAggregations'
 
 export async function getTodorant() {
   const connection = await createConnection(process.env.TODORANT, {
@@ -17,9 +18,13 @@ export async function getTodorant() {
   const userCount = await User.find().countDocuments()
   await connection.close()
   return {
-    todoDaily: todoDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
+    todoDaily: fixAggregation(
+      todoDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ),
     todoCount,
-    userDaily: userDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
+    userDaily: fixAggregation(
+      userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ),
     userCount,
   }
 }

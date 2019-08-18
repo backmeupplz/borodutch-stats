@@ -1,6 +1,7 @@
 // Dependencies
 import { dailyCreatedConfig } from './aggregations'
 import { createConnection } from 'mongoose'
+import { fixAggregation } from './fixAggregations'
 
 export async function getBanofbot() {
   const connection = await createConnection(process.env.BANOFBOT, {
@@ -18,11 +19,17 @@ export async function getBanofbot() {
   const requestCount = await Request.find().count()
   await connection.close()
   return {
-    userDaily: userDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
+    userDaily: fixAggregation(
+      userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ),
     userCount,
-    chatDaily: chatDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
+    chatDaily: fixAggregation(
+      chatDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ),
     chatCount,
-    requestDaily: requestDaily.sort((a, b) => (a._id > b._id ? 1 : -1)),
+    requestDaily: fixAggregation(
+      requestDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ),
     requestCount,
   }
 }
