@@ -7,6 +7,7 @@ import { getTemply } from './temply'
 import { getRandym } from './randym'
 import { getBanofbot } from './banofbot'
 import { getTlgcoin } from './tlgcoin'
+import { getTodorant } from './todorant'
 
 export let stats: any = {}
 
@@ -99,17 +100,26 @@ async function updateStats() {
         /<div class="tgme_page_extra">(.+) members/
           .exec(goldenBorodutch)[1]
           .replace(' ', ''),
-        10,
+        10
       ),
     }
     console.log('Got @golden_borodutch data')
   } catch (err) {
     console.log(err)
   }
+  // Todorant
+  try {
+    stats.todorant = {
+      db: await getTodorant(),
+      cloudflare: await cloudflareData('04eee73f1a96a2ef34c12e1f79936104'),
+    }
+  } catch (err) {
+    console.log(err)
+  }
 
   const end = new Date()
   console.info(
-    `Finished updating in ${(end.getTime() - start.getTime()) / 1000}s`,
+    `Finished updating in ${(end.getTime() - start.getTime()) / 1000}s`
   )
 }
 
@@ -133,13 +143,13 @@ export async function cloudflareData(id: string) {
   try {
     console.log(`Getting Cloudflare data for ${id}`)
     const data = (await axios.get(
-      `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-172800`,
+      `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-129600`,
       {
         headers: {
           'X-Auth-Key': process.env.CLOUDFLARE,
           'X-Auth-Email': 'backmeupplz@gmail.com',
         },
-      },
+      }
     )).data
     const result = []
     for (const unit of data.result.timeseries) {

@@ -9,7 +9,9 @@ export async function getTemply() {
   })
 
   const User = connection.collection('users')
-  const userDaily = await User.aggregate(dailyCreatedConfig).toArray()
+  const userDaily = (await User.aggregate(dailyCreatedConfig).toArray()).filter(
+    a => a._id !== null
+  )
   const userCount = await User.find().count()
   const tCount = (await User.aggregate(templatesCount).toArray())[0].templates
   await connection.close()
