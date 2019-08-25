@@ -1,7 +1,6 @@
 // Dependencies
-import axios from 'axios'
-import { createConnection } from 'mongoose'
 import { dailyCreatedConfig } from './aggregations'
+import { createConnection } from 'mongoose'
 import { fixAggregation } from './fixAggregations'
 
 export async function getTodorant() {
@@ -9,13 +8,12 @@ export async function getTodorant() {
     useNewUrlParser: true,
   })
 
-  const Todo = connection.collection('Todo')
-  const User = connection.collection('User')
-
-  const todoDaily = await Todo.aggregate(dailyCreatedConfig).toArray()
-  const todoCount = await Todo.find().count()
+  const User = connection.collection('users')
   const userDaily = await User.aggregate(dailyCreatedConfig).toArray()
   const userCount = await User.find().count()
+  const Todo = connection.collection('todos')
+  const todoDaily = await Todo.aggregate(dailyCreatedConfig).toArray()
+  const todoCount = await Todo.find().count()
   await connection.close()
   return {
     todoDaily: fixAggregation(
