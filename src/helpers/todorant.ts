@@ -9,13 +9,13 @@ export async function getTodorant() {
     useNewUrlParser: true,
   })
 
-  const Todo = connection.model('Todo', {} as any)
-  const User = connection.model('User', {} as any)
+  const Todo = connection.collection('Todo')
+  const User = connection.collection('User')
 
-  const todoDaily = await Todo.aggregate(dailyCreatedConfig)
-  const todoCount = await Todo.find().countDocuments()
-  const userDaily = await User.aggregate(dailyCreatedConfig)
-  const userCount = await User.find().countDocuments()
+  const todoDaily = await Todo.aggregate(dailyCreatedConfig).toArray()
+  const todoCount = await Todo.find().count()
+  const userDaily = await User.aggregate(dailyCreatedConfig).toArray()
+  const userCount = await User.find().count()
   await connection.close()
   return {
     todoDaily: fixAggregation(
