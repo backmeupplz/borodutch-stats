@@ -19,5 +19,9 @@ export function fixAggregation(array: any) {
     }
     previousId = index
   })
+  if (array[0]._id < 0) {
+    const diff = 0 - array[0]._id
+    array = array.forEach(v => (v += diff))
+  }
   return result
 }
