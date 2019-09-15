@@ -9,10 +9,10 @@ export async function getTodorant() {
   })
 
   const User = connection.collection('users')
-  const userDaily = await User.aggregate(dailyCreatedConfig).toArray()
+  const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
   const userCount = await User.find().count()
   const Todo = connection.collection('todos')
-  const todoDaily = await Todo.aggregate(dailyCreatedConfig).toArray()
+  const todoDaily = await Todo.aggregate(dailyCreatedConfig()).toArray()
   const todoCount = await Todo.find().count()
   await connection.close()
   return {

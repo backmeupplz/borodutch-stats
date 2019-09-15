@@ -12,9 +12,9 @@ export async function getMT() {
   const Order = connection.model('Order', {} as any)
   const User = connection.model('User', {} as any)
 
-  const orderDaily = await Order.aggregate(dailyCreatedConfig)
+  const orderDaily = await Order.aggregate(dailyCreatedConfig())
   const orderCount = await Order.find().countDocuments()
-  const userDaily = await User.aggregate(dailyCreatedConfig)
+  const userDaily = await User.aggregate(dailyCreatedConfig())
   const userCount = await User.find().countDocuments()
   await connection.close()
   return {

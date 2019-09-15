@@ -11,11 +11,11 @@ export async function getArbeitBot() {
 
   const Job = connection.collection('jobs')
   const User = connection.collection('users')
-  const jobDaily = (await Job.aggregate(dailyCreatedConfig).toArray()).filter(
+  const jobDaily = (await Job.aggregate(dailyCreatedConfig()).toArray()).filter(
     v => v._id !== null
   )
   const jobCount = await Job.find().count()
-  const userDaily = await User.aggregate(dailyCreatedConfig).toArray()
+  const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
   const userCount = await User.find().count()
   await connection.close()
   return {

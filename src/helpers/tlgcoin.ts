@@ -9,7 +9,7 @@ export async function getTlgcoin() {
   })
 
   const User = connection.collection('users')
-  const userDaily = await User.aggregate(dailyCreatedConfig).toArray()
+  const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
   const userCount = await User.find().count()
   const coinsCount = (await User.aggregate([
     {

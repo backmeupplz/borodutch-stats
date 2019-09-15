@@ -10,9 +10,9 @@ export async function getRandym() {
 
   const Raffle = connection.collection('raffles')
   const Chat = connection.collection('chats')
-  const chatDaily = await Chat.aggregate(dailyCreatedConfig).toArray()
+  const chatDaily = await Chat.aggregate(dailyCreatedConfig()).toArray()
   const chatCount = await Chat.find().count()
-  const raffleDaily = await Raffle.aggregate(dailyCreatedConfig).toArray()
+  const raffleDaily = await Raffle.aggregate(dailyCreatedConfig()).toArray()
   const raffleCount = await Raffle.find().count()
   await connection.close()
   return {

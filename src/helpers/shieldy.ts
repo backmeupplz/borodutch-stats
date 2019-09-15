@@ -9,7 +9,7 @@ export async function getShieldy() {
   })
 
   const Chat = connection.collection('chats')
-  const chatDaily = await Chat.aggregate(dailyCreatedConfig).toArray()
+  const chatDaily = await Chat.aggregate(dailyCreatedConfig()).toArray()
   const chatCount = await Chat.find().count()
   await connection.close()
   return {
