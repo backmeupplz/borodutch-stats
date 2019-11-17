@@ -8,6 +8,7 @@ import { getRandym } from './randym'
 import { getBanofbot } from './banofbot'
 import { getTlgcoin } from './tlgcoin'
 import { getTodorant } from './todorant'
+import { getFeedr } from './feedr'
 
 export let stats: any = {}
 
@@ -116,6 +117,15 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // Feedr
+  try {
+    stats.feedr = {
+      db: await getFeedr(),
+      cloudflare: await cloudflareData('103a52b4434392eb97931dba963a6653'),
+    }
+  } catch (err) {
+    console.log(err)
+  }
 
   const end = new Date()
   console.info(
@@ -142,15 +152,17 @@ setInterval(async () => {
 export async function cloudflareData(id: string) {
   try {
     console.log(`Getting Cloudflare data for ${id}`)
-    const data = (await axios.get(
-      `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-129600`,
-      {
-        headers: {
-          'X-Auth-Key': process.env.CLOUDFLARE,
-          'X-Auth-Email': 'backmeupplz@gmail.com',
-        },
-      }
-    )).data
+    const data = (
+      await axios.get(
+        `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-129600`,
+        {
+          headers: {
+            'X-Auth-Key': process.env.CLOUDFLARE,
+            'X-Auth-Email': 'backmeupplz@gmail.com',
+          },
+        }
+      )
+    ).data
     const result = []
     for (const unit of data.result.timeseries) {
       result.push(unit.requests.all)
