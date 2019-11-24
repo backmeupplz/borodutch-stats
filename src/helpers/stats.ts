@@ -9,6 +9,7 @@ import { getBanofbot } from './banofbot'
 import { getTlgcoin } from './tlgcoin'
 import { getTodorant } from './todorant'
 import { getFeedr } from './feedr'
+import { getCheckMyTextBot } from './checkMyTextBot'
 
 export let stats: any = {}
 
@@ -123,6 +124,12 @@ async function updateStats() {
       db: await getFeedr(),
       cloudflare: await cloudflareData('103a52b4434392eb97931dba963a6653'),
     }
+  } catch (err) {
+    console.log(err)
+  }
+  // Check my text bot
+  try {
+    stats.checkMyTextBot = await getCheckMyTextBot()
   } catch (err) {
     console.log(err)
   }
