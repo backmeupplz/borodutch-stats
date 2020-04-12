@@ -9,7 +9,7 @@
   "private": false,
   "scripts": {
     "distribute": "yarn build-ts && node dist/app.js",
-    "develop": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold\" \"yarn watch-ts\" \"yarn watch-js\"",
+    "develop": "concurrently -i -k -p \"[{name}]\" -n \"Node, TypeScript\" -c \"yellow.bold,cyan.bold\" \"yarn watch-js\" \"yarn watch-ts\"",
     "build-ts": "tsc --skipLibCheck",
     "watch-ts": "tsc -w --skipLibCheck",
     "watch-js": "nodemon dist/app.js"
@@ -30,6 +30,7 @@
     "koa-bodyparser-ts": "^0.3.1",
     "koa-router-ts": "^3.0.0",
     "mongoose": "^5.6.9",
+    "telegraf": "^3.37.0",
     "typegoose": "^5.9.0",
     "typescript": "^3.5.3"
   }

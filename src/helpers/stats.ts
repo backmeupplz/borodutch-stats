@@ -1,4 +1,5 @@
 // Dependencies
+import { userCount } from './userCount'
 import axios from 'axios'
 import { getMT } from './mt'
 import { getArbeitBot } from './arbeitbot'
@@ -133,6 +134,8 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // User count
+  stats.userCount = userCount
 
   const end = new Date()
   console.info(
