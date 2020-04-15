@@ -12,7 +12,7 @@ export async function getArbeitBot() {
   const Job = connection.collection('jobs')
   const User = connection.collection('users')
   const jobDaily = (await Job.aggregate(dailyCreatedConfig()).toArray()).filter(
-    v => v._id !== null
+    (v) => v._id !== null
   )
   const jobCount = await Job.find().count()
   const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
@@ -25,6 +25,9 @@ export async function getArbeitBot() {
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
     ),
     userCount,
-    website: await cloudflareData('23655bf636aed23a2311f10f64dbb00a'),
+    website: await cloudflareData(
+      '23655bf636aed23a2311f10f64dbb00a',
+      'arbeitbot'
+    ),
   }
 }

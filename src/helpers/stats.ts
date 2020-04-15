@@ -205,7 +205,7 @@ export async function cloudflareData(id: string, name: string) {
     return stats[name]
       ? Array.isArray(stats[name])
         ? stats[name]
-        : stats[name].cloudflare || []
+        : stats[name].cloudflare || stats[name].website || []
       : []
   }
 }
