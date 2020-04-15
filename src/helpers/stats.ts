@@ -64,32 +64,47 @@ async function updateStats() {
   try {
     stats.voicy = {
       stats: (await axios.get('https://pay.voicybot.com/statsfornikita')).data,
-      cloudflare: await cloudflareData('a2931825c44695714557a87d1ceb4699'),
+      cloudflare: await cloudflareData(
+        'a2931825c44695714557a87d1ceb4699',
+        'voicy'
+      ),
     }
   } catch (err) {
     console.log(err)
   }
   // Fondu
   try {
-    stats.fondu = await cloudflareData('1ec35cf14fe9fdcd97290a42af2deee8')
+    stats.fondu = await cloudflareData(
+      '1ec35cf14fe9fdcd97290a42af2deee8',
+      'fondu'
+    )
   } catch (err) {
     console.log(err)
   }
   // Borodutch
   try {
-    stats.borodutch = await cloudflareData('1f2511a68b81a60b7280ebbb3c61291d')
+    stats.borodutch = await cloudflareData(
+      '1f2511a68b81a60b7280ebbb3c61291d',
+      'borodutch'
+    )
   } catch (err) {
     console.log(err)
   }
   // Please no
   try {
-    stats.pleaseno = await cloudflareData('40a2eeccaffd2df433952dc4ac924dde')
+    stats.pleaseno = await cloudflareData(
+      '40a2eeccaffd2df433952dc4ac924dde',
+      'pleaseno'
+    )
   } catch (err) {
     console.log(err)
   }
   // Resetbot
   try {
-    stats.resetbot = await cloudflareData('5310b8bd048921d0d433392061172c90')
+    stats.resetbot = await cloudflareData(
+      '5310b8bd048921d0d433392061172c90',
+      'resetbot'
+    )
   } catch (err) {
     console.log(err)
   }
@@ -114,7 +129,10 @@ async function updateStats() {
   try {
     stats.todorant = {
       db: await getTodorant(),
-      cloudflare: await cloudflareData('04eee73f1a96a2ef34c12e1f79936104'),
+      cloudflare: await cloudflareData(
+        '04eee73f1a96a2ef34c12e1f79936104',
+        'todorant'
+      ),
     }
   } catch (err) {
     console.log(err)
@@ -123,7 +141,10 @@ async function updateStats() {
   try {
     stats.feedr = {
       db: await getFeedr(),
-      cloudflare: await cloudflareData('103a52b4434392eb97931dba963a6653'),
+      cloudflare: await cloudflareData(
+        '103a52b4434392eb97931dba963a6653',
+        'feedr'
+      ),
     }
   } catch (err) {
     console.log(err)
@@ -159,7 +180,7 @@ setInterval(async () => {
   }
 }, 10 * 60 * 1000)
 
-export async function cloudflareData(id: string) {
+export async function cloudflareData(id: string, name: string) {
   try {
     console.log(`Getting Cloudflare data for ${id}`)
     const data = (
@@ -181,6 +202,10 @@ export async function cloudflareData(id: string) {
     return result
   } catch (err) {
     console.log(err)
-    return []
+    return stats[name]
+      ? Array.isArray(stats[name])
+        ? stats[name]
+        : stats[name].cloudflare || []
+      : []
   }
 }

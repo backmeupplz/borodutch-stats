@@ -3,7 +3,7 @@ import { createConnection } from 'mongoose'
 import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
 
 export let userCount = {
-  count: 0,
+  count: 13877999, // data on 2020-04-15 to initialize
 }
 
 async function updateStats() {
