@@ -99,6 +99,24 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // Localizer
+  try {
+    stats.localizer = await cloudflareData(
+      '773399d49713f0a56c59800f0baf677f',
+      'localizer'
+    )
+  } catch (err) {
+    console.log(err)
+  }
+  // Post Your Startup
+  try {
+    stats.postyourstartup = await cloudflareData(
+      '1eea2de74b3d26096fdfdc487b641ad0',
+      'postyourstartup'
+    )
+  } catch (err) {
+    console.log(err)
+  }
   // Resetbot
   try {
     stats.resetbot = await cloudflareData(
