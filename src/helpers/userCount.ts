@@ -4,7 +4,7 @@ import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
 const Telegraf = require('telegraf')
 
 export let userCount = {
-  count: 16804885, // data on 2020-06-08 to initialize
+  count: 19671177, // data on 2020-07-31 to initialize
 }
 
 async function updateStats() {
