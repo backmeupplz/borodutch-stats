@@ -32,13 +32,13 @@ export async function getBotUsers(
         new Promise(async (res) => {
           try {
             const id = parseInt(chat[idFieldName], 10)
-            const tgchat = await bot.telegram.getChat(id)
-            if (tgchat.type === 'private') {
+            // Don't even check private chats
+            if (id > 0) {
               res(1)
-            } else {
-              const count = await bot.telegram.getChatMembersCount(id)
-              res(count)
+              return
             }
+            const count = await bot.telegram.getChatMembersCount(id)
+            res(count)
           } catch (err) {
             res(0)
           }
@@ -80,13 +80,14 @@ export async function getBotUsersForSpeller(
       promises.push(
         new Promise(async (res) => {
           try {
-            const tgchat = await bot.telegram.getChat(chat)
-            if (tgchat.type === 'private') {
+            // Don't even check private chats
+            const id = parseInt(chat, 10)
+            if (id > 0) {
               res(1)
-            } else {
-              const count = await bot.telegram.getChatMembersCount(chat)
-              res(count)
+              return
             }
+            const count = await bot.telegram.getChatMembersCount(chat)
+            res(count)
           } catch (err) {
             res(0)
           }
