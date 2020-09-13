@@ -4,8 +4,10 @@ import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
 const Telegraf = require('telegraf')
 
 export let userCount = {
-  count: 21861791, // data on 2020-09-11 to initialize
+  count: 22070391, // data on 2020-09-13 to initialize
 }
+
+export const userCountSeparate = {} as { [index: string]: number }
 
 async function updateStats() {
   try {
@@ -14,85 +16,103 @@ async function updateStats() {
     console.log('+ updating user count')
     // Golden borodutch
     console.log('+ getting golden borodutch stats')
-    const goldenBorodutcUsers = await goldenBorodutch()
-    result += goldenBorodutcUsers
+    const goldenBorodutchUsers = await goldenBorodutch()
+    result += goldenBorodutchUsers
     console.log(`+ result ${result}`)
-    console.log(`+ got golden borodutch ${goldenBorodutcUsers}`)
+    console.log(`+ got golden borodutch ${goldenBorodutchUsers}`)
+    userCountSeparate.goldenBorodutch = goldenBorodutchUsers
     // Todorant
     console.log('+ getting todorant stats')
     const todorantUsers = await todorant()
     result += todorantUsers
     console.log(`+ result ${result}`)
     console.log(`+ got todorant ${todorantUsers}`)
+    userCountSeparate.todorant = todorantUsers
     // Feedr
     console.log('+ getting feedr stats')
     const feedrUsers = await feedr()
     result += feedrUsers
     console.log(`+ result ${result}`)
     console.log(`+ got feedr ${feedrUsers}`)
+    userCountSeparate.feedr = feedrUsers
     // MT
     console.log('+ getting mt stats')
     const mtUsers = await mt()
     result += mtUsers
     console.log(`+ result ${result}`)
     console.log(`+ got mt ${mtUsers}`)
+    userCountSeparate.mt = mtUsers
     // Temply
     console.log('+ getting temply stats')
     const templyUsers = await temply()
     result += templyUsers
     console.log(`+ result ${result}`)
     console.log(`+ got temply ${templyUsers}`)
+    userCountSeparate.temply = templyUsers
     // ArbeitBot
     console.log('+ getting arbeit_bot stats')
     const arbeitBotUsers = await arbeitBot()
     result += arbeitBotUsers
     console.log(`+ result ${result}`)
     console.log(`+ got arbeit_bot ${arbeitBotUsers}`)
+    userCountSeparate.arbeitBot = arbeitBotUsers
     // Check my text bot
-    result += await getBotUsersForSpeller(
+    const spellerUsers = await getBotUsersForSpeller(
       '@check_my_text_bot',
       process.env.CHECK_MY_TEXT_BOT,
       process.env.CHECK_MY_TEXT_BOT_TOKEN
     )
+    result += spellerUsers
     console.log(`+ result ${result}`)
+    userCountSeparate.speller = spellerUsers
     // Randy
-    result += await getBotUsers(
+    const randyUsers = await getBotUsers(
       '@randymbot',
       process.env.RANDYM,
       process.env.RANDYM_TOKEN,
       'chatId'
     )
+    result += randyUsers
     console.log(`+ result ${result}`)
+    userCountSeparate.randy = randyUsers
     // Banofbot
-    result += await getBotUsers(
+    const banofbotUsers = await getBotUsers(
       '@banofbot',
       process.env.BANOFBOT,
       process.env.BANOFBOT_TOKEN
     )
+    result += banofbotUsers
     console.log(`+ result ${result}`)
+    userCountSeparate.banofbot = banofbotUsers
     // TLGCoin
-    result += await getBotUsers(
+    const tlgcoinUsers = await getBotUsers(
       '@tlgcoin_bot',
       process.env.TLGCOIN,
       process.env.TLGCOIN_TOKEN,
       undefined,
       'users'
     )
+    result += tlgcoinUsers
     console.log(`+ result ${result}`)
+    userCountSeparate.tlgcoin = tlgcoinUsers
     // Shieldy
-    result += await getBotUsers(
+    const shieldyUsers = await getBotUsers(
       '@shieldy_bot',
       process.env.SHIELDY,
       process.env.SHIELDY_TOKEN
     )
+    result += shieldyUsers
     console.log(`+ result ${result}`)
+    userCountSeparate.shieldy = shieldyUsers
     // Voicy
-    result += await getBotUsers(
+    const voicyUsers = await getBotUsers(
       '@voicy_bot',
       process.env.VOICY,
       process.env.VOICY_TOKEN
     )
+    result += voicyUsers
     console.log(`+ result ${result}`)
+    userCountSeparate.voicy = voicyUsers
     // Result
     userCount.count = result
     const end = new Date()
