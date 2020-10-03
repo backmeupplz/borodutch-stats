@@ -99,6 +99,15 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // Fix sleep
+  try {
+    stats.fixsleep = await cloudflareData(
+      '5046fa978449269a5ede9bda4ca2cc9a',
+      'fixsleep'
+    )
+  } catch (err) {
+    console.log(err)
+  }
   // Localizer
   try {
     stats.localizer = await cloudflareData(
