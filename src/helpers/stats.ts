@@ -210,26 +210,47 @@ setInterval(async () => {
 
 export async function cloudflareData(id: string, name: string) {
   try {
-    console.log(`Getting Cloudflare data for ${id}`)
+    console.log(`Getting Cloudflare data for ${id} ${process.env.CLOUDFLARE}`)
+    const threeMonthsAgo = new Date()
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
     const data = (
-      await axios.get(
-        `https://api.cloudflare.com/client/v4/zones/${id}/analytics/dashboard?since=-129600`,
+      await axios.post(
+        `https://api.cloudflare.com/client/v4/graphql`,
+        JSON.stringify({
+          query: `{
+viewer {
+  zones(filter: {zoneTag: "23655bf636aed23a2311f10f64dbb00a"}) {
+    httpRequests1dGroups(orderBy: [date_ASC], limit: 1000, filter: {date_gt: "${threeMonthsAgo.getFullYear()}-${
+            threeMonthsAgo.getMonth() + 1
+          }-${threeMonthsAgo.getDate()}"}) {
+      date: dimensions {
+        date
+      }
+      sum {
+        requests
+      }
+    }
+  }
+}
+}`,
+          variables: {},
+        }),
         {
           headers: {
             'X-Auth-Key': process.env.CLOUDFLARE,
-            'X-Auth-Email': 'backmeupplz@gmail.com',
+            'X-AUTH-EMAIL': 'backmeupplz@gmail.com',
           },
         }
       )
     ).data
     const result = []
-    for (const unit of data.result.timeseries) {
-      result.push(unit.requests.all)
+    for (const unit of data.data.viewer.zones[0].httpRequests1dGroups) {
+      result.push(unit.sum.requests)
     }
     console.log(`Got Cloudflare data for ${id}`)
     return result
   } catch (err) {
-    console.log(err)
+    console.log(err.message)
     return stats[name]
       ? Array.isArray(stats[name])
         ? stats[name]

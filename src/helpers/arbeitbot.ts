@@ -1,4 +1,3 @@
-// Dependencies
 import { dailyCreatedConfig } from './aggregations'
 import { createConnection } from 'mongoose'
 import { cloudflareData } from './stats'
