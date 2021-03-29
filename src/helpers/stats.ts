@@ -99,6 +99,15 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // Bot finder
+  try {
+    stats.botfinder = await cloudflareData(
+      '4418257b0d1bb3ba3d3beafb6834238f',
+      'botfinder'
+    )
+  } catch (err) {
+    console.log(err)
+  }
   // Fix sleep
   try {
     stats.fixsleep = await cloudflareData(
