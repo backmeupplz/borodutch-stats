@@ -228,7 +228,7 @@ export async function cloudflareData(id: string, name: string) {
         JSON.stringify({
           query: `{
 viewer {
-  zones(filter: {zoneTag: "23655bf636aed23a2311f10f64dbb00a"}) {
+  zones(filter: {zoneTag: "${id}"}) {
     httpRequests1dGroups(orderBy: [date_ASC], limit: 1000, filter: {date_gt: "${threeMonthsAgo.getFullYear()}-${
             threeMonthsAgo.getMonth() + 1
           }-${threeMonthsAgo.getDate()}"}) {
