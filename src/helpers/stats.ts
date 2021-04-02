@@ -230,8 +230,14 @@ export async function cloudflareData(id: string, name: string) {
 viewer {
   zones(filter: {zoneTag: "${id}"}) {
     httpRequests1dGroups(orderBy: [date_ASC], limit: 1000, filter: {date_gt: "${threeMonthsAgo.getFullYear()}-${
-            threeMonthsAgo.getMonth() + 1
-          }-${threeMonthsAgo.getDate()}"}) {
+            threeMonthsAgo.getMonth() + 1 > 9
+              ? threeMonthsAgo.getMonth() + 1
+              : `0${threeMonthsAgo.getMonth() + 1}`
+          }-${
+            threeMonthsAgo.getDate() > 9
+              ? threeMonthsAgo.getDate()
+              : `0${threeMonthsAgo.getDate()}`
+          }"}) {
       date: dimensions {
         date
       }
