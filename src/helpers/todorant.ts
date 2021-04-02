@@ -17,7 +17,9 @@ export async function getTodorant() {
   await connection.close()
   return {
     todoDaily: fixAggregation(
-      todoDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+      todoDaily
+        .sort((a, b) => (a._id > b._id ? 1 : -1))
+        .filter((a) => a._id >= 0)
     ),
     todoCount,
     userDaily: fixAggregation(
