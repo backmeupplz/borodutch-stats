@@ -18,6 +18,12 @@ async function updateStats() {
   console.info('Started updating')
   const start = new Date()
 
+  // Shieldy
+  try {
+    stats.shieldy = await getShieldy()
+  } catch (err) {
+    console.log(err)
+  }
   // TLGCoin
   try {
     stats.tlgcoin = await getTlgcoin()
@@ -39,12 +45,6 @@ async function updateStats() {
   // Temply
   try {
     stats.temply = await getTemply()
-  } catch (err) {
-    console.log(err)
-  }
-  // Shieldy
-  try {
-    stats.shieldy = await getShieldy()
   } catch (err) {
     console.log(err)
   }
