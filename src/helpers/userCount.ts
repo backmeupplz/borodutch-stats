@@ -163,12 +163,10 @@ async function goldenBorodutch() {
   try {
     const goldenBorodutch = (await axios.get('https://t.me/golden_borodutch'))
       .data
-    return parseInt(
-      /<div class="tgme_page_extra">(.+) members/
-        .exec(goldenBorodutch)[1]
-        .replace(' ', ''),
-      10
-    )
+    const goldenBorodutchNumber = /<div class="tgme_page_extra">(.+) \D+/
+      .exec(goldenBorodutch)[1]
+      .replace(' ', '')
+    return parseInt(goldenBorodutchNumber, 10)
   } catch (err) {
     console.log(err)
   }

@@ -149,13 +149,12 @@ async function updateStats() {
     console.log('Getting @golden_borodutch data')
     const goldenBorodutch = (await axios.get('https://t.me/golden_borodutch'))
       .data
+    const goldenBorodutchNumber = /<div class="tgme_page_extra">(.+) \D+/
+      .exec(goldenBorodutch)[1]
+      .replace(' ', '')
+    console.log(goldenBorodutchNumber)
     stats.goldenBorodutch = {
-      subCount: parseInt(
-        /<div class="tgme_page_extra">(.+) members/
-          .exec(goldenBorodutch)[1]
-          .replace(' ', ''),
-        10
-      ),
+      subCount: parseInt(goldenBorodutchNumber, 10),
     }
     console.log('Got @golden_borodutch data')
   } catch (err) {
