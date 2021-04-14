@@ -1,15 +1,28 @@
 import axios from 'axios'
 import { createConnection } from 'mongoose'
 import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
+import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 export let userCount = {
-  count: 36131554, // data on 2021-03-29 to initialize
+  count: 37338071, // data on 2021-04-14 to initialize
+  history: [],
 }
 
 export const userCountSeparate = {} as { [index: string]: number }
 
 async function updateStats() {
+  // Add count history
+  try {
+    const history = readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
+    const historyItems = history
+      .split('\n')
+      .filter((v) => !!v)
+      .map((i) => i.split(' '))
+    userCount.history = historyItems
+  } catch (err) {
+    console.log(err)
+  }
   try {
     const start = new Date()
     let result = 0
@@ -116,6 +129,14 @@ async function updateStats() {
     // Result
     userCount.count = result
     const end = new Date()
+    try {
+      appendFileSync(
+        `${__dirname}/../../usercount.txt`,
+        `${Date.now()} ${result}\n`
+      )
+    } catch (err) {
+      console.log(err)
+    }
     console.log(
       `+ got overall number of users ${result} in ${(
         (end.getTime() - start.getTime()) /
@@ -124,6 +145,18 @@ async function updateStats() {
         60
       ).toFixed(3)}h`
     )
+    // Add count history
+    try {
+      const history = readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
+      const historyItems = history
+        .split('\n')
+        .filter((v) => !!v)
+        .map((i) => i.split(' '))
+      userCount.history = historyItems
+    } catch (err) {
+      console.log(err)
+    }
+    // Send message to Telegram
     const bot = new Telegraf(process.env.TOKEN)
     bot.telegram.sendMessage(
       process.env.ADMIN,
