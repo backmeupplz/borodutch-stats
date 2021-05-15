@@ -117,6 +117,15 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // Magic pill
+  try {
+    stats.magicpill = await cloudflareData(
+      '48cef4a697e3a544873c5799d4bcd96f',
+      'magicpill'
+    )
+  } catch (err) {
+    console.log(err)
+  }
   // Localizer
   try {
     stats.localizer = await cloudflareData(
