@@ -3,7 +3,6 @@ import { userCount, userCountSeparate } from './userCount'
 import axios from 'axios'
 import { getMT } from './mt'
 import { getArbeitBot } from './arbeitbot'
-import { getShieldy } from './shieldy'
 import { getTemply } from './temply'
 import { getRandym } from './randym'
 import { getBanofbot } from './banofbot'
@@ -20,7 +19,9 @@ async function updateStats() {
 
   // Shieldy
   try {
-    stats.shieldy = await getShieldy()
+    const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
+      .shieldy
+    stats.shieldy = shieldyStats
   } catch (err) {
     console.log(err)
   }

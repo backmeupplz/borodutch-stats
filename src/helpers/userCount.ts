@@ -5,7 +5,7 @@ import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 export let userCount = {
-  count: 41752255, // data on 2021-05-15 to initialize
+  count: 45642343, // data on 2021-06-01 to initialize
   history: [],
 }
 
@@ -27,6 +27,14 @@ async function updateStats() {
     const start = new Date()
     let result = 0
     console.log('+ updating user count')
+    // Shieldy
+    console.log('+ getting shieldy stats')
+    const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
+      .shieldy
+    const shieldyUsers = shieldyStats.userCount
+    result += shieldyUsers
+    console.log(`+ result ${result}`)
+    userCountSeparate.shieldy = shieldyUsers
     // Golden borodutch
     console.log('+ getting golden borodutch stats')
     const goldenBorodutchUsers = await goldenBorodutch()
@@ -108,15 +116,6 @@ async function updateStats() {
     result += tlgcoinUsers
     console.log(`+ result ${result}`)
     userCountSeparate.tlgcoin = tlgcoinUsers
-    // Shieldy
-    const shieldyUsers = await getBotUsers(
-      '@shieldy_bot',
-      process.env.SHIELDY,
-      process.env.SHIELDY_TOKEN
-    )
-    result += shieldyUsers
-    console.log(`+ result ${result}`)
-    userCountSeparate.shieldy = shieldyUsers
     // Voicy
     const voicyUsers = await getBotUsers(
       '@voicy_bot',
