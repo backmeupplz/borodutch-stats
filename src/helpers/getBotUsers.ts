@@ -103,7 +103,7 @@ export async function getBotUsersForSpeller(
 }
 
 function delay(seconds) {
-  return new Promise((res) => {
+  return new Promise<void>((res) => {
     setTimeout(() => {
       res()
     }, seconds * 1000)
