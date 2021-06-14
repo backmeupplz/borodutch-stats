@@ -10,6 +10,7 @@ import { getTlgcoin } from './tlgcoin'
 import { getTodorant } from './todorant'
 import { getFeedr } from './feedr'
 import { getCheckMyTextBot } from './checkMyTextBot'
+import { getDeleteNudesBot } from './deleteNudesBot'
 
 export let stats: any = {}
 
@@ -22,6 +23,12 @@ async function updateStats() {
     const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
       .shieldy
     stats.shieldy = shieldyStats
+  } catch (err) {
+    console.log(err)
+  }
+  // DeleteNudesBot
+  try {
+    stats.deletenudesbot = await getDeleteNudesBot()
   } catch (err) {
     console.log(err)
   }

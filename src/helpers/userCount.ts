@@ -5,7 +5,7 @@ import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 export let userCount = {
-  count: 45642343, // data on 2021-06-01 to initialize
+  count: 47941694, // data on 2021-06-14 to initialize
   history: [],
 }
 
@@ -27,6 +27,15 @@ async function updateStats() {
     const start = new Date()
     let result = 0
     console.log('+ updating user count')
+    // DeleteNudesBot
+    const deleteNudesBotUsers = await getBotUsers(
+      '@DeleteNudesBot',
+      process.env.DELETENUDESBOT,
+      process.env.DELETENUDESBOT_TOKEN
+    )
+    result += deleteNudesBotUsers
+    console.log(`+ result ${result}`)
+    userCountSeparate.deletenudesbot = deleteNudesBotUsers
     // Shieldy
     console.log('+ getting shieldy stats')
     const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
