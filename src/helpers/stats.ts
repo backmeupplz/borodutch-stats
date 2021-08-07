@@ -134,6 +134,15 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // CommonCrypto
+  try {
+    stats.commoncrypto = await cloudflareData(
+      '178f8a0aed2199be0d4df9faf1bf708e',
+      'commoncrypto'
+    )
+  } catch (err) {
+    console.log(err)
+  }
   // Localizer
   try {
     stats.localizer = await cloudflareData(

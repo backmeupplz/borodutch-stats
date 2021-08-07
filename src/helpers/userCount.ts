@@ -5,7 +5,7 @@ import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 export let userCount = {
-  count: 54832541, // data on 2021-07-24 to initialize
+  count: 55584395, // data on 2021-08-07 to initialize
   history: [],
 }
 
