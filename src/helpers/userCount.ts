@@ -4,6 +4,16 @@ import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
 import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
+let lastUserCount = 65345412
+try {
+  lastUserCount =
+    +readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
+      .split('\n')[0]
+      .split(' ')[1] || 65345412
+} catch {
+  // do nothing
+}
+
 export let userCount = {
   count: 65345412, // data on 2021-10-10 to initialize
   history: [],
