@@ -15,6 +15,12 @@ try {
   // do nothing
 }
 
+console.log(
+  'Recovered user count',
+  lastUserCount,
+  readFileSync(`${__dirname}/../../usercount.txt`, 'utf8').split('\n').pop()
+)
+
 export let userCount = {
   count: lastUserCount, // data on 2021-10-10 to initialize
   history: [],
