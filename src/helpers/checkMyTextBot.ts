@@ -9,7 +9,9 @@ export async function getCheckMyTextBot() {
   })
 
   const User = connection.collection('users')
-  const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
+  const userDaily = (
+    await User.aggregate(dailyCreatedConfig()).toArray()
+  ).reverse()
   const userCount = await User.find().count()
   await connection.close()
   return {

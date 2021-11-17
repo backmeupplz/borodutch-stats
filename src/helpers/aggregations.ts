@@ -1,5 +1,6 @@
 export function dailyCreatedConfig() {
   return [
+    { $match: { createdAt: { $gt: new Date(2017, 1, 1) } } },
     {
       $project: {
         _id: '$_id',

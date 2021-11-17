@@ -23,6 +23,9 @@ async function updateStats() {
     const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
       .shieldy
     stats.shieldy = shieldyStats
+    if (stats.shieldy.chatDaily) {
+      stats.shieldy.chatDaily = stats.shieldy.chatDaily.reverse()
+    }
   } catch (err) {
     console.log(err)
   }

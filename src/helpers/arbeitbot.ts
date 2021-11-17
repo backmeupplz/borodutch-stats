@@ -18,11 +18,13 @@ export async function getArbeitBot() {
   const userCount = await User.find().count()
   await connection.close()
   return {
-    jobDaily: fixAggregation(jobDaily.sort((a, b) => (a._id > b._id ? 1 : -1))),
+    jobDaily: fixAggregation(
+      jobDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ).reverse(),
     jobCount,
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
     website: await cloudflareData(
       '23655bf636aed23a2311f10f64dbb00a',

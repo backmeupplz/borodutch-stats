@@ -20,11 +20,11 @@ export async function getTodorant() {
       todoDaily
         .sort((a, b) => (a._id > b._id ? 1 : -1))
         .filter((a) => a._id >= 0)
-    ),
+    ).reverse(),
     todoCount,
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
   }
 }

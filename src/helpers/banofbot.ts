@@ -21,15 +21,15 @@ export async function getBanofbot() {
   return {
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
     chatDaily: fixAggregation(
       chatDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     chatCount,
     requestDaily: fixAggregation(
       requestDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     requestCount,
   }
 }

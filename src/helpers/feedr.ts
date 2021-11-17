@@ -9,10 +9,14 @@ export async function getFeedr() {
   })
 
   const User = connection.collection('users')
-  const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
+  const userDaily = await (
+    await User.aggregate(dailyCreatedConfig()).toArray()
+  ).reverse()
   const userCount = await User.find().count()
   const Bot = connection.collection('bots')
-  const botDaily = await Bot.aggregate(dailyCreatedConfig()).toArray()
+  const botDaily = (
+    await Bot.aggregate(dailyCreatedConfig()).toArray()
+  ).reverse()
   const botCount = await Bot.find().count()
   await connection.close()
   return {

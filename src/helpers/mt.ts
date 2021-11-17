@@ -20,11 +20,11 @@ export async function getMT() {
   return {
     orderDaily: fixAggregation(
       orderDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     orderCount,
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
     website: (await axios.get('https://backend.mamkin.trade/stats')).data,
   }
