@@ -8,7 +8,8 @@ let lastUserCount = 65345412
 try {
   lastUserCount =
     +readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
-      .split('\n')[0]
+      .split('\n')
+      .pop()
       .split(' ')[1] || 65345412
 } catch {
   // do nothing
