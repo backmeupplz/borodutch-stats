@@ -16,7 +16,7 @@ try {
 }
 
 export let userCount = {
-  count: 65345412, // data on 2021-10-10 to initialize
+  count: lastUserCount, // data on 2021-10-10 to initialize
   history: [],
 }
 
