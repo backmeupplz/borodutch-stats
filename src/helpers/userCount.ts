@@ -5,12 +5,13 @@ import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 let lastUserCount = 65345412
+const userCountLines = readFileSync(
+  `${__dirname}/../../usercount.txt`,
+  'utf8'
+).split('\n')
 try {
   lastUserCount =
-    +readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
-      .split('\n')
-      .pop()
-      .split(' ')[1] || 65345412
+    +userCountLines[userCountLines.length - 2].split(' ')[1] || 65345412
 } catch {
   // do nothing
 }
@@ -18,7 +19,7 @@ try {
 console.log(
   'Recovered user count',
   lastUserCount,
-  readFileSync(`${__dirname}/../../usercount.txt`, 'utf8').split('\n').pop()
+  userCountLines[userCountLines.length - 2]
 )
 
 export let userCount = {
