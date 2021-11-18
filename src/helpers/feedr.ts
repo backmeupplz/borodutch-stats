@@ -20,11 +20,13 @@ export async function getFeedr() {
   const botCount = await Bot.find().count()
   await connection.close()
   return {
-    botDaily: fixAggregation(botDaily.sort((a, b) => (a._id > b._id ? 1 : -1))),
+    botDaily: fixAggregation(
+      botDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
+    ).reverse(),
     botCount,
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
   }
 }
