@@ -19,7 +19,7 @@ export async function getTemply() {
   return {
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
     templatesCount: tCount,
   }

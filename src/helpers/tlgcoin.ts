@@ -28,7 +28,7 @@ export async function getTlgcoin() {
   return {
     userDaily: fixAggregation(
       userDaily.sort((a, b) => (a._id > b._id ? 1 : -1))
-    ),
+    ).reverse(),
     userCount,
     coinsCount,
   }
