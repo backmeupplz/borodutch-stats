@@ -45,6 +45,16 @@ async function updateStats() {
     const start = new Date()
     let result = 0
     console.log('+ updating user count')
+    // Video Download Bot
+    const videoDownloadBotUsers = await getBotUsers(
+      '@anyvideodownloadbot',
+      process.env.VDB,
+      process.env.VDB_TOKEN,
+      'telegramId'
+    )
+    result += videoDownloadBotUsers
+    console.log(`+ result ${result}`)
+    userCountSeparate.videoDownloadBot = videoDownloadBotUsers
     // DeleteNudesBot
     const deleteNudesBotUsers = await getBotUsers(
       '@DeleteNudesBot',
