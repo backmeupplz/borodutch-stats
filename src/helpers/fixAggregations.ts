@@ -1,7 +1,7 @@
 export function fixAggregation(array: any) {
   const result = []
   let previousId = 0
-  array.forEach(element => {
+  array.filter(v => !!v).forEach(element => {
     const index = element._id
     if (previousId === index) {
       result.push(element)
@@ -19,7 +19,7 @@ export function fixAggregation(array: any) {
     }
     previousId = index
   })
-  if (array[0]._id < 0) {
+  if (array[0] && array[0]._id < 0) {
     const diff = 0 - array[0]._id
     array = array.forEach(v => (v += diff))
   }
