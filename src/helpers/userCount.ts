@@ -43,7 +43,7 @@ async function updateStats() {
   }
   try {
     const start = new Date()
-    let result = 0
+    const result = []
     console.log('+ updating user count')
     // Video Download Bot
     const videoDownloadBotUsers = await getBotUsers(
@@ -52,7 +52,7 @@ async function updateStats() {
       process.env.VDB_TOKEN,
       'telegramId'
     )
-    result += videoDownloadBotUsers
+    result.push(videoDownloadBotUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.videoDownloadBot = videoDownloadBotUsers
     // DeleteNudesBot
@@ -61,7 +61,7 @@ async function updateStats() {
       process.env.DELETENUDESBOT,
       process.env.DELETENUDESBOT_TOKEN
     )
-    result += deleteNudesBotUsers
+    result.push(deleteNudesBotUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.deletenudesbot = deleteNudesBotUsers
     // Shieldy
@@ -69,48 +69,48 @@ async function updateStats() {
     const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
       .shieldy
     const shieldyUsers = shieldyStats.userCount
-    result += shieldyUsers
+    result.push(shieldyUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.shieldy = shieldyUsers
     // Golden borodutch
     console.log('+ getting golden borodutch stats')
     const goldenBorodutchUsers = await goldenBorodutch()
-    result += goldenBorodutchUsers
+    result.push(goldenBorodutchUsers)
     console.log(`+ result ${result}`)
     console.log(`+ got golden borodutch ${goldenBorodutchUsers}`)
     userCountSeparate.goldenBorodutch = goldenBorodutchUsers
     // Todorant
     console.log('+ getting todorant stats')
     const todorantUsers = await todorant()
-    result += todorantUsers
+    result.push(todorantUsers)
     console.log(`+ result ${result}`)
     console.log(`+ got todorant ${todorantUsers}`)
     userCountSeparate.todorant = todorantUsers
     // Feedr
     console.log('+ getting feedr stats')
     const feedrUsers = await feedr()
-    result += feedrUsers
+    result.push(feedrUsers)
     console.log(`+ result ${result}`)
     console.log(`+ got feedr ${feedrUsers}`)
     userCountSeparate.feedr = feedrUsers
     // MT
     console.log('+ getting mt stats')
     const mtUsers = await mt()
-    result += mtUsers
+    result.push(mtUsers)
     console.log(`+ result ${result}`)
     console.log(`+ got mt ${mtUsers}`)
     userCountSeparate.mt = mtUsers
     // Temply
     console.log('+ getting temply stats')
     const templyUsers = await temply()
-    result += templyUsers
+    result.push(templyUsers)
     console.log(`+ result ${result}`)
     console.log(`+ got temply ${templyUsers}`)
     userCountSeparate.temply = templyUsers
     // ArbeitBot
     console.log('+ getting arbeit_bot stats')
     const arbeitBotUsers = await arbeitBot()
-    result += arbeitBotUsers
+    result.push(arbeitBotUsers)
     console.log(`+ result ${result}`)
     console.log(`+ got arbeit_bot ${arbeitBotUsers}`)
     userCountSeparate.arbeitBot = arbeitBotUsers
@@ -120,7 +120,7 @@ async function updateStats() {
       process.env.CHECK_MY_TEXT_BOT,
       process.env.CHECK_MY_TEXT_BOT_TOKEN
     )
-    result += spellerUsers
+    result.push(spellerUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.speller = spellerUsers
     // Randy
@@ -130,7 +130,7 @@ async function updateStats() {
       process.env.RANDYM_TOKEN,
       'chatId'
     )
-    result += randyUsers
+    result.push(randyUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.randy = randyUsers
     // Banofbot
@@ -139,7 +139,7 @@ async function updateStats() {
       process.env.BANOFBOT,
       process.env.BANOFBOT_TOKEN
     )
-    result += banofbotUsers
+    result.push(banofbotUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.banofbot = banofbotUsers
     // TLGCoin
@@ -150,7 +150,7 @@ async function updateStats() {
       undefined,
       'users'
     )
-    result += tlgcoinUsers
+    result.push(tlgcoinUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.tlgcoin = tlgcoinUsers
     // Voicy
@@ -159,11 +159,11 @@ async function updateStats() {
       process.env.VOICY,
       process.env.VOICY_TOKEN
     )
-    result += voicyUsers
+    result.push(voicyUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.voicy = voicyUsers
     // Result
-    userCount.count = result
+    userCount.count = result.filter(v => !!v && !isNaN(v)).reduce((a, b) => a + b, 0)
     const end = new Date()
     try {
       appendFileSync(
