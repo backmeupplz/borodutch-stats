@@ -163,18 +163,19 @@ async function updateStats() {
     console.log(`+ result ${result}`)
     userCountSeparate.voicy = voicyUsers
     // Result
-    userCount.count = result.filter(v => !!v && !isNaN(v)).reduce((a, b) => a + b, 0)
+    const resultCount = result.filter(v => !!v && !isNaN(v)).reduce((a, b) => a + b, 0)
+    userCount.count = resultCount
     const end = new Date()
     try {
       appendFileSync(
         `${__dirname}/../../usercount.txt`,
-        `${Date.now()} ${result}\n`
+        `${Date.now()} ${resultCount}\n`
       )
     } catch (err) {
       console.log(err)
     }
     console.log(
-      `+ got overall number of users ${result} in ${(
+      `+ got overall number of users ${resultCount} in ${(
         (end.getTime() - start.getTime()) /
         1000 /
         60 /
@@ -196,7 +197,7 @@ async function updateStats() {
     const bot = new Telegraf(process.env.TOKEN)
     bot.telegram.sendMessage(
       process.env.ADMIN,
-      `got overall number of users ${result} in ${(
+      `got overall number of users ${resultCount} in ${(
         (end.getTime() - start.getTime()) /
         1000 /
         60 /
