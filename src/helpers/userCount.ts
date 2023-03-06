@@ -86,13 +86,6 @@ async function updateStats() {
     console.log(`+ result ${result}`)
     console.log(`+ got todorant ${todorantUsers}`)
     userCountSeparate.todorant = todorantUsers
-    // Feedr
-    console.log('+ getting feedr stats')
-    const feedrUsers = await feedr()
-    result.push(feedrUsers)
-    console.log(`+ result ${result}`)
-    console.log(`+ got feedr ${feedrUsers}`)
-    userCountSeparate.feedr = feedrUsers
     // MT
     console.log('+ getting mt stats')
     const mtUsers = await mt()
@@ -244,16 +237,6 @@ async function goldenBorodutch() {
 
 async function todorant() {
   const connection = await createConnection(process.env.TODORANT, {
-    useNewUrlParser: true,
-  })
-  const User = connection.collection('users')
-  const userCount = await User.find().count()
-  await connection.close()
-  return userCount
-}
-
-async function feedr() {
-  const connection = await createConnection(process.env.FEEDR, {
     useNewUrlParser: true,
   })
   const User = connection.collection('users')

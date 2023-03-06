@@ -8,7 +8,6 @@ import { getRandym } from './randym'
 import { getBanofbot } from './banofbot'
 import { getTlgcoin } from './tlgcoin'
 import { getTodorant } from './todorant'
-import { getFeedr } from './feedr'
 import { getCheckMyTextBot } from './checkMyTextBot'
 import { getDeleteNudesBot } from './deleteNudesBot'
 
@@ -196,18 +195,6 @@ async function updateStats() {
       cloudflare: await cloudflareData(
         '04eee73f1a96a2ef34c12e1f79936104',
         'todorant'
-      ),
-    }
-  } catch (err) {
-    console.log(err)
-  }
-  // Feedr
-  try {
-    stats.feedr = {
-      db: await getFeedr(),
-      cloudflare: await cloudflareData(
-        '103a52b4434392eb97931dba963a6653',
-        'feedr'
       ),
     }
   } catch (err) {
