@@ -4,9 +4,17 @@ import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
 import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
+// create usercount.txt if it does not exist
+try {
+  readFileSync(`${__dirname}/../../usercount/usercount.txt`, 'utf8')
+} catch (err) {
+  appendFileSync(`${__dirname}/../../usercount/usercount.txt`, '')
+  console.log('usercount.txt created')
+}
+
 let lastUserCount = 65345412
 const userCountLines = readFileSync(
-  `${__dirname}/../../usercount.txt`,
+  `${__dirname}/../../usercount/usercount.txt`,
   'utf8'
 ).split('\n')
 try {
@@ -32,7 +40,10 @@ export const userCountSeparate = {} as { [index: string]: number }
 async function updateStats() {
   // Add count history
   try {
-    const history = readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
+    const history = readFileSync(
+      `${__dirname}/../../usercount/usercount.txt`,
+      'utf8'
+    )
     const historyItems = history
       .split('\n')
       .filter((v) => !!v)
@@ -129,7 +140,7 @@ async function updateStats() {
     const end = new Date()
     try {
       appendFileSync(
-        `${__dirname}/../../usercount.txt`,
+        `${__dirname}/../../usercount/usercount.txt`,
         `${Date.now()} ${resultCount}\n`
       )
     } catch (err) {
@@ -145,7 +156,10 @@ async function updateStats() {
     )
     // Add count history
     try {
-      const history = readFileSync(`${__dirname}/../../usercount.txt`, 'utf8')
+      const history = readFileSync(
+        `${__dirname}/../../usercount/usercount.txt`,
+        'utf8'
+      )
       const historyItems = history
         .split('\n')
         .filter((v) => !!v)
