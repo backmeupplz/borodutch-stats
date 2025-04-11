@@ -1,16 +1,22 @@
 import axios from 'axios'
 import { createConnection } from 'mongoose'
 import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
-import { appendFileSync, readFileSync } from 'fs'
+import { appendFileSync, readFileSync, writeFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 // create usercount.txt if it does not exist
-try {
-  readFileSync(`${__dirname}/../../usercount/usercount.txt`, 'utf8')
-} catch (err) {
-  appendFileSync(`${__dirname}/../../usercount/usercount.txt`, '')
-  console.log('usercount.txt created')
-}
+// try {
+//   readFileSync(`${__dirname}/../../usercount/usercount.txt`, 'utf8')
+// } catch (err) {
+//   appendFileSync(`${__dirname}/../../usercount/usercount.txt`, '')
+//   console.log('usercount.txt created')
+// }
+
+// Append usercount-initial.txt to usercount.txt
+writeFileSync(
+  `${__dirname}/../../usercount/usercount.txt`,
+  readFileSync(`${__dirname}/../../usercount-initial.txt`, 'utf8')
+)
 
 let lastUserCount = 65345412
 const userCountLines = readFileSync(
