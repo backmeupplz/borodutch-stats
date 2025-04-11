@@ -1,15 +1,11 @@
 // Dependencies
 import { userCount, userCountSeparate } from './userCount'
 import axios from 'axios'
-import { getMT } from './mt'
-import { getArbeitBot } from './arbeitbot'
 import { getTemply } from './temply'
 import { getRandym } from './randym'
 import { getBanofbot } from './banofbot'
-import { getTlgcoin } from './tlgcoin'
 import { getTodorant } from './todorant'
 import { getCheckMyTextBot } from './checkMyTextBot'
-import { getDeleteNudesBot } from './deleteNudesBot'
 
 export let stats: any = {}
 
@@ -28,18 +24,6 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
-  // DeleteNudesBot
-  try {
-    stats.deletenudesbot = await getDeleteNudesBot()
-  } catch (err) {
-    console.log(err)
-  }
-  // TLGCoin
-  try {
-    stats.tlgcoin = await getTlgcoin()
-  } catch (err) {
-    console.log(err)
-  }
   // Banofbot
   try {
     stats.banofbot = await getBanofbot()
@@ -55,18 +39,6 @@ async function updateStats() {
   // Temply
   try {
     stats.temply = await getTemply()
-  } catch (err) {
-    console.log(err)
-  }
-  // Arbeitbot
-  try {
-    stats.arbeitbot = await getArbeitBot()
-  } catch (err) {
-    console.log(err)
-  }
-  // Mamkin Trade
-  try {
-    stats.mt = await getMT()
   } catch (err) {
     console.log(err)
   }
@@ -109,15 +81,6 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
-  // Bot finder
-  try {
-    stats.botfinder = await cloudflareData(
-      '4418257b0d1bb3ba3d3beafb6834238f',
-      'botfinder'
-    )
-  } catch (err) {
-    console.log(err)
-  }
   // Fix sleep
   try {
     stats.fixsleep = await cloudflareData(
@@ -132,33 +95,6 @@ async function updateStats() {
     stats.magicpill = await cloudflareData(
       '48cef4a697e3a544873c5799d4bcd96f',
       'magicpill'
-    )
-  } catch (err) {
-    console.log(err)
-  }
-  // CommonCrypto
-  try {
-    stats.commoncrypto = await cloudflareData(
-      '178f8a0aed2199be0d4df9faf1bf708e',
-      'commoncrypto'
-    )
-  } catch (err) {
-    console.log(err)
-  }
-  // Localizer
-  try {
-    stats.localizer = await cloudflareData(
-      '773399d49713f0a56c59800f0baf677f',
-      'localizer'
-    )
-  } catch (err) {
-    console.log(err)
-  }
-  // Post Your Startup
-  try {
-    stats.postyourstartup = await cloudflareData(
-      '1eea2de74b3d26096fdfdc487b641ad0',
-      'postyourstartup'
     )
   } catch (err) {
     console.log(err)

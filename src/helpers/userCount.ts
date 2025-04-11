@@ -55,15 +55,6 @@ async function updateStats() {
     result.push(videoDownloadBotUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.videoDownloadBot = videoDownloadBotUsers
-    // DeleteNudesBot
-    const deleteNudesBotUsers = await getBotUsers(
-      '@DeleteNudesBot',
-      process.env.DELETENUDESBOT,
-      process.env.DELETENUDESBOT_TOKEN
-    )
-    result.push(deleteNudesBotUsers)
-    console.log(`+ result ${result}`)
-    userCountSeparate.deletenudesbot = deleteNudesBotUsers
     // Shieldy
     console.log('+ getting shieldy stats')
     const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
@@ -86,13 +77,6 @@ async function updateStats() {
     console.log(`+ result ${result}`)
     console.log(`+ got todorant ${todorantUsers}`)
     userCountSeparate.todorant = todorantUsers
-    // MT
-    console.log('+ getting mt stats')
-    const mtUsers = await mt()
-    result.push(mtUsers)
-    console.log(`+ result ${result}`)
-    console.log(`+ got mt ${mtUsers}`)
-    userCountSeparate.mt = mtUsers
     // Temply
     console.log('+ getting temply stats')
     const templyUsers = await temply()
@@ -100,13 +84,6 @@ async function updateStats() {
     console.log(`+ result ${result}`)
     console.log(`+ got temply ${templyUsers}`)
     userCountSeparate.temply = templyUsers
-    // ArbeitBot
-    console.log('+ getting arbeit_bot stats')
-    const arbeitBotUsers = await arbeitBot()
-    result.push(arbeitBotUsers)
-    console.log(`+ result ${result}`)
-    console.log(`+ got arbeit_bot ${arbeitBotUsers}`)
-    userCountSeparate.arbeitBot = arbeitBotUsers
     // Check my text bot
     const spellerUsers = await getBotUsersForSpeller(
       '@check_my_text_bot',
@@ -135,17 +112,6 @@ async function updateStats() {
     result.push(banofbotUsers)
     console.log(`+ result ${result}`)
     userCountSeparate.banofbot = banofbotUsers
-    // TLGCoin
-    const tlgcoinUsers = await getBotUsers(
-      '@tlgcoin_bot',
-      process.env.TLGCOIN,
-      process.env.TLGCOIN_TOKEN,
-      undefined,
-      'users'
-    )
-    result.push(tlgcoinUsers)
-    console.log(`+ result ${result}`)
-    userCountSeparate.tlgcoin = tlgcoinUsers
     // Voicy
     const voicyUsers = await getBotUsers(
       '@voicy_bot',
@@ -156,7 +122,9 @@ async function updateStats() {
     console.log(`+ result ${result}`)
     userCountSeparate.voicy = voicyUsers
     // Result
-    const resultCount = result.filter(v => !!v && !isNaN(v)).reduce((a, b) => a + b, 0)
+    const resultCount = result
+      .filter((v) => !!v && !isNaN(v))
+      .reduce((a, b) => a + b, 0)
     userCount.count = resultCount
     const end = new Date()
     try {
@@ -245,28 +213,8 @@ async function todorant() {
   return userCount
 }
 
-async function mt() {
-  const connection = await createConnection(process.env.MT, {
-    useNewUrlParser: true,
-  })
-  const User = connection.collection('users')
-  const userCount = await User.find().count()
-  await connection.close()
-  return userCount
-}
-
 async function temply() {
   const connection = await createConnection(process.env.TEMPLY, {
-    useNewUrlParser: true,
-  })
-  const User = connection.collection('users')
-  const userCount = await User.find().count()
-  await connection.close()
-  return userCount
-}
-
-async function arbeitBot() {
-  const connection = await createConnection(process.env.ARBEIT_BOT, {
     useNewUrlParser: true,
   })
   const User = connection.collection('users')
