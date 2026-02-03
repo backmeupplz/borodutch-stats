@@ -56,16 +56,6 @@ async function updateStats() {
     const start = new Date()
     const result = []
     console.log('+ updating user count')
-    // Video Download Bot
-    const videoDownloadBotUsers = await getBotUsers(
-      '@anyvideodownloadbot',
-      process.env.VDB,
-      process.env.VDB_TOKEN,
-      'telegramId'
-    )
-    result.push(videoDownloadBotUsers)
-    console.log(`+ result ${result}`)
-    userCountSeparate.videoDownloadBot = videoDownloadBotUsers
     // Shieldy
     console.log('+ getting shieldy stats')
     const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
