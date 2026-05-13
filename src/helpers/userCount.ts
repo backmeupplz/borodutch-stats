@@ -129,12 +129,10 @@ async function updateStats() {
     userCount.count = resultCount
     const end = new Date()
     try {
-      if (resultCount > 100_000_000) {
-        appendFileSync(
-          `${__dirname}/../../usercount/usercount.txt`,
-          `${Date.now()} ${resultCount}\n`
-        )
-      }
+      appendFileSync(
+        `${__dirname}/../../usercount/usercount.txt`,
+        `${Date.now()} ${resultCount}\n`
+      )
     } catch (err) {
       console.log(err)
     }
