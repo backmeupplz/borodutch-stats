@@ -10,9 +10,18 @@
 
 ## Environment variables
 
-| Name         | Description        |
-| ------------ | ------------------ |
-| `CLOUDFLARE` | Cloudflare API key |
+| Name                | Description                                                                 |
+| ------------------- | --------------------------------------------------------------------------- |
+| `CLOUDFLARE`        | Cloudflare API key                                                          |
+| `STRIPE_SECRET_KEY` | Optional Stripe secret key for `/arr`; omit locally to return empty ARR data |
+
+## Public endpoints
+
+- `/stats` keeps returning the full historical payload for backwards compatibility.
+- `/summary` returns the same object with array histories removed for fast initial page loads.
+- `/stats/:project` returns detailed stats for one project code, with `randy` mapped to `randym` and `speller` mapped to `checkMyTextBot`.
+- `/count` keeps returning the homepage user count and history.
+- `/arr` returns 12 monthly points with `monthlyRecurringRevenue` and `annualRecurringRevenue`. It includes paid Stripe invoices with subscription-backed recurring line items and excludes one-time invoice items, usage without recurring price metadata, unpaid invoices, taxes, refunds, disputes, and non-Stripe revenue. Without Stripe config it returns zeroed chart data with `configured: false`.
 
 Also, please, consider looking at `.env.sample`.
 
