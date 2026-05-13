@@ -1,6 +1,9 @@
 import axios from 'axios'
 import { createConnection } from 'mongoose'
-import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
+import {
+  getBotReachability,
+  getBotReachabilityForSpeller,
+} from './getBotUsers'
 import { appendFileSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
@@ -33,9 +36,12 @@ console.log(
 export let userCount = {
   count: lastUserCount, // data on 2021-10-10 to initialize
   history: [],
+  reachability: {} as { [index: string]: any },
 }
 
 export const userCountSeparate = {} as { [index: string]: number }
+
+export const userCountReachability = {} as { [index: string]: any }
 
 async function updateStats() {
   // Add count history
@@ -86,47 +92,52 @@ async function updateStats() {
     console.log(`+ got temply ${templyUsers}`)
     userCountSeparate.temply = templyUsers
     // Check my text bot
-    const spellerUsers = await getBotUsersForSpeller(
+    const spellerReachability = await getBotReachabilityForSpeller(
       '@check_my_text_bot',
       process.env.CHECK_MY_TEXT_BOT,
       process.env.CHECK_MY_TEXT_BOT_TOKEN
     )
-    result.push(spellerUsers)
+    result.push(spellerReachability.totalUsers)
     console.log(`+ result ${result}`)
-    userCountSeparate.speller = spellerUsers
+    userCountSeparate.speller = spellerReachability.totalUsers
+    userCountReachability.speller = spellerReachability
     // Randy
-    const randyUsers = await getBotUsers(
+    const randyReachability = await getBotReachability(
       '@randymbot',
       process.env.RANDYM,
       process.env.RANDYM_TOKEN,
       'chatId'
     )
-    result.push(randyUsers)
+    result.push(randyReachability.totalUsers)
     console.log(`+ result ${result}`)
-    userCountSeparate.randy = randyUsers
+    userCountSeparate.randy = randyReachability.totalUsers
+    userCountReachability.randy = randyReachability
     // Banofbot
-    const banofbotUsers = await getBotUsers(
+    const banofbotReachability = await getBotReachability(
       '@banofbot',
       process.env.BANOFBOT,
       process.env.BANOFBOT_TOKEN
     )
-    result.push(banofbotUsers)
+    result.push(banofbotReachability.totalUsers)
     console.log(`+ result ${result}`)
-    userCountSeparate.banofbot = banofbotUsers
+    userCountSeparate.banofbot = banofbotReachability.totalUsers
+    userCountReachability.banofbot = banofbotReachability
     // Voicy
-    const voicyUsers = await getBotUsers(
+    const voicyReachability = await getBotReachability(
       '@voicy_bot',
       process.env.VOICY,
       process.env.VOICY_TOKEN
     )
-    result.push(voicyUsers)
+    result.push(voicyReachability.totalUsers)
     console.log(`+ result ${result}`)
-    userCountSeparate.voicy = voicyUsers
+    userCountSeparate.voicy = voicyReachability.totalUsers
+    userCountReachability.voicy = voicyReachability
     // Result
     const resultCount = result
       .filter((v) => !!v && !isNaN(v))
       .reduce((a, b) => a + b, 0)
     userCount.count = resultCount
+    userCount.reachability = userCountReachability
     const end = new Date()
     try {
       appendFileSync(

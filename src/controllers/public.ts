@@ -4,7 +4,7 @@ import { Controller, Get } from 'koa-router-ts'
 import { arr } from '../helpers/arr'
 import { projectStats, summary } from '../helpers/summary'
 import { stats } from '../helpers/stats'
-import { userCount } from '../helpers/userCount'
+import { userCount, userCountReachability } from '../helpers/userCount'
 
 @Controller('/')
 export default class {
@@ -26,6 +26,11 @@ export default class {
   @Get('count')
   count(ctx: Context) {
     ctx.body = userCount
+  }
+
+  @Get('reachability')
+  reachability(ctx: Context) {
+    ctx.body = userCountReachability
   }
 
   @Get('arr')
