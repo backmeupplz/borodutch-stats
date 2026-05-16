@@ -4,20 +4,23 @@ import {
   getBotReachability,
   getBotReachabilityForSpeller,
 } from './getBotUsers'
-import { appendFileSync, readFileSync } from 'fs'
+import { appendFileSync, mkdirSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
+
+const userCountPath = `${__dirname}/../../usercount/usercount.txt`
 
 // create usercount.txt if it does not exist
 try {
-  readFileSync(`${__dirname}/../../usercount/usercount.txt`, 'utf8')
+  mkdirSync(`${__dirname}/../../usercount`, { recursive: true })
+  readFileSync(userCountPath, 'utf8')
 } catch (err) {
-  appendFileSync(`${__dirname}/../../usercount/usercount.txt`, '')
+  appendFileSync(userCountPath, '')
   console.log('usercount.txt created')
 }
 
 let lastUserCount = 65345412
 const userCountLines = readFileSync(
-  `${__dirname}/../../usercount/usercount.txt`,
+  userCountPath,
   'utf8'
 ).split('\n')
 try {
@@ -43,11 +46,21 @@ export const userCountSeparate = {} as { [index: string]: number }
 
 export const userCountReachability = {} as { [index: string]: any }
 
+function notifyAdmin(message: string) {
+  if (!process.env.TOKEN || !process.env.ADMIN) {
+    return
+  }
+  const bot = new Telegraf(process.env.TOKEN)
+  bot.telegram.sendMessage(process.env.ADMIN, message).catch((err) => {
+    console.log(err)
+  })
+}
+
 async function updateStats() {
   // Add count history
   try {
     const history = readFileSync(
-      `${__dirname}/../../usercount/usercount.txt`,
+      userCountPath,
       'utf8'
     )
     const historyItems = history
@@ -141,7 +154,7 @@ async function updateStats() {
     const end = new Date()
     try {
       appendFileSync(
-        `${__dirname}/../../usercount/usercount.txt`,
+        userCountPath,
         `${Date.now()} ${resultCount}\n`
       )
     } catch (err) {
@@ -158,7 +171,7 @@ async function updateStats() {
     // Add count history
     try {
       const history = readFileSync(
-        `${__dirname}/../../usercount/usercount.txt`,
+        userCountPath,
         'utf8'
       )
       const historyItems = history
@@ -170,9 +183,7 @@ async function updateStats() {
       console.log(err)
     }
     // Send message to Telegram
-    const bot = new Telegraf(process.env.TOKEN)
-    bot.telegram.sendMessage(
-      process.env.ADMIN,
+    notifyAdmin(
       `got overall number of users ${resultCount} in ${(
         (end.getTime() - start.getTime()) /
         1000 /
@@ -181,11 +192,7 @@ async function updateStats() {
       ).toFixed(3)}h`
     )
   } catch (err) {
-    const bot = new Telegraf(process.env.TOKEN)
-    bot.telegram.sendMessage(
-      process.env.ADMIN,
-      `Could not calculate user count ${err.message}`
-    )
+    notifyAdmin(`Could not calculate user count ${err.message}`)
   }
 }
 
