@@ -8,6 +8,8 @@ import { appendFileSync, mkdirSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
 
 const userCountPath = `${__dirname}/../../usercount/usercount.txt`
+const minimumValidUserCount = 100_000_000
+const suspiciousHistoryWindow = 25
 
 // create usercount.txt if it does not exist
 try {
@@ -18,27 +20,32 @@ try {
   console.log('usercount.txt created')
 }
 
-let lastUserCount = 65345412
-const userCountLines = readFileSync(
-  userCountPath,
-  'utf8'
-).split('\n')
-try {
-  lastUserCount =
-    +userCountLines[userCountLines.length - 2].split(' ')[1] || 65345412
-} catch {
-  // do nothing
+function parseUserCountHistory() {
+  const history = readFileSync(userCountPath, 'utf8')
+  const historyItems = history
+    .split('\n')
+    .filter((v) => !!v)
+    .map((i) => i.split(' '))
+  const recentItems = historyItems.slice(-suspiciousHistoryWindow)
+  if (
+    recentItems.some(
+      (item) => Number(item[1]) > 0 && Number(item[1]) < minimumValidUserCount
+    )
+  ) {
+    return historyItems.slice(0, -suspiciousHistoryWindow)
+  }
+  return historyItems
 }
 
-console.log(
-  'Recovered user count',
-  lastUserCount,
-  userCountLines[userCountLines.length - 2]
-)
+let userCountHistory = parseUserCountHistory()
+let lastUserCount =
+  Number(userCountHistory[userCountHistory.length - 1]?.[1]) || 65345412
+
+console.log('Recovered user count', lastUserCount)
 
 export let userCount = {
   count: lastUserCount, // data on 2021-10-10 to initialize
-  history: [],
+  history: userCountHistory,
   reachability: {} as { [index: string]: any },
 }
 
@@ -59,18 +66,18 @@ function notifyAdmin(message: string) {
 async function updateStats() {
   // Add count history
   try {
-    const history = readFileSync(
-      userCountPath,
-      'utf8'
-    )
-    const historyItems = history
-      .split('\n')
-      .filter((v) => !!v)
-      .map((i) => i.split(' '))
-    userCount.history = historyItems
+    userCountHistory = parseUserCountHistory()
+    userCount.history = userCountHistory
+    userCount.count =
+      Number(userCountHistory[userCountHistory.length - 1]?.[1]) ||
+      userCount.count
   } catch (err) {
     console.log(err)
   }
+  console.log('+ user count recalculation is disabled')
+}
+
+async function recalculateUserCount() {
   try {
     const start = new Date()
     const result = []
@@ -196,21 +203,7 @@ async function updateStats() {
   }
 }
 
-let updating = false
 updateStats()
-setInterval(async () => {
-  if (updating) {
-    return
-  }
-  try {
-    updating = true
-    await updateStats()
-  } catch (err) {
-    console.error(err)
-  } finally {
-    updating = false
-  }
-}, 24 * 60 * 60 * 1000)
 
 async function goldenBorodutch() {
   try {
