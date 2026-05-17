@@ -4,9 +4,7 @@ import { createConnection } from 'mongoose'
 import { fixAggregation } from './fixAggregations'
 
 export async function getBanofbot() {
-  const connection = await createConnection(process.env.BANOFBOT, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(process.env.BANOFBOT).asPromise()
 
   const User = connection.collection('users')
   const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()
