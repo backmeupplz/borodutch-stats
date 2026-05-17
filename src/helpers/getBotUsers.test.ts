@@ -43,6 +43,12 @@ const Telegraf = require('telegraf')
 
 // ─── Helpers ───────────────────────────────────────────────────────────
 
+function mockCreateConnection(connection: any): void {
+  mongoose.createConnection.mockReturnValue({
+    asPromise: jest.fn().mockResolvedValue(connection),
+  })
+}
+
 function makeResult(): ReachabilityResult {
   return {
     totalUsers: 0,
@@ -310,7 +316,7 @@ describe('getBotReachability', function () {
         { id: -1001234567890 },
       ]),
     })
-    mongoose.createConnection.mockResolvedValue({
+    mockCreateConnection({
       collection: jest.fn().mockReturnValue({ find: mockFind }),
       close: jest.fn().mockResolvedValue(undefined),
     })
@@ -371,7 +377,7 @@ describe('getBotReachability', function () {
       count: jest.fn().mockResolvedValue(1),
       toArray: jest.fn().mockResolvedValue([{ id: 123456789 }]),
     })
-    mongoose.createConnection.mockResolvedValue({
+    mockCreateConnection({
       collection: jest.fn().mockReturnValue({ find: mockFind }),
       close: jest.fn().mockResolvedValue(undefined),
     })
@@ -411,7 +417,7 @@ describe('getBotReachability', function () {
       count: jest.fn().mockResolvedValue(1),
       toArray: jest.fn().mockResolvedValue([{ id: -1009999999999 }]),
     })
-    mongoose.createConnection.mockResolvedValue({
+    mockCreateConnection({
       collection: jest.fn().mockReturnValue({ find: mockFind }),
       close: jest.fn().mockResolvedValue(undefined),
     })
@@ -453,7 +459,7 @@ describe('getBotReachability', function () {
       count: jest.fn().mockResolvedValue(chats.length),
       toArray: jest.fn().mockResolvedValue(chats),
     })
-    mongoose.createConnection.mockResolvedValue({
+    mockCreateConnection({
       collection: jest.fn().mockReturnValue({ find: mockFind }),
       close: jest.fn().mockResolvedValue(undefined),
     })
@@ -521,7 +527,7 @@ describe('getBotReachabilityForSpeller', function () {
       count: jest.fn().mockResolvedValue(3),
       toArray: jest.fn().mockResolvedValue(users),
     })
-    mongoose.createConnection.mockResolvedValue({
+    mockCreateConnection({
       collection: jest.fn().mockReturnValue({ find: mockFind }),
       close: jest.fn().mockResolvedValue(undefined),
     })
@@ -587,7 +593,7 @@ describe('getBotUsers (legacy API preservation)', function () {
         { id: -1007777777777 },
       ]),
     })
-    mongoose.createConnection.mockResolvedValue({
+    mockCreateConnection({
       collection: jest.fn().mockReturnValue({ find: mockFind }),
       close: jest.fn().mockResolvedValue(undefined),
     })

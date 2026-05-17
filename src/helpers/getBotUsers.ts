@@ -289,9 +289,7 @@ export async function getBotReachability(
       ')'
   )
 
-  const connection = await createConnection(mongo, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(mongo).asPromise()
   const Chat = connection.collection(chatCollectionName)
   const chatCount = await Chat.find().count()
   console.log('+ got ' + chatCount + ' chats for ' + name + ', loading cache...')
@@ -500,9 +498,7 @@ export async function getBotReachabilityForSpeller(
 
   console.log('+ getting reachability for ' + name + ' (speller variant)')
 
-  const connection = await createConnection(mongo, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(mongo).asPromise()
   const User = connection.collection('users')
   const userCount = await User.find().count()
   const users = await User.find().toArray()

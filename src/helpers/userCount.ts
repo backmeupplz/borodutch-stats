@@ -219,9 +219,7 @@ async function goldenBorodutch() {
 }
 
 async function todorant() {
-  const connection = await createConnection(process.env.TODORANT, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(process.env.TODORANT).asPromise()
   const User = connection.collection('users')
   const userCount = await User.find().count()
   await connection.close()
@@ -229,9 +227,7 @@ async function todorant() {
 }
 
 async function temply() {
-  const connection = await createConnection(process.env.TEMPLY, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(process.env.TEMPLY).asPromise()
   const User = connection.collection('users')
   const userCount = await User.find().count()
   await connection.close()
