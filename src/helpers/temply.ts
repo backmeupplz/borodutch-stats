@@ -5,9 +5,7 @@ import { createConnection } from 'mongoose'
 import { fixAggregation } from './fixAggregations'
 
 export async function getTemply() {
-  const connection = await createConnection(process.env.TEMPLY, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(process.env.TEMPLY).asPromise()
 
   const User = connection.collection('users')
   const userDaily = (await User.aggregate(dailyCreatedConfig()).toArray())

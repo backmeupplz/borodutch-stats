@@ -10,7 +10,6 @@
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
     },
-    "types": ["node", "mongoose", "axios", "dotenv"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },

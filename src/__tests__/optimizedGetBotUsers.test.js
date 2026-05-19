@@ -15,7 +15,7 @@ jest.mock('mongoose', () => {
     createConnection: jest
       .fn()
       .mockImplementation(function (uri, options) {
-        return Promise.resolve({
+        const connection = {
           collection: jest.fn().mockImplementation(function (name) {
             return {
               find: jest.fn().mockImplementation(function (query, opts) {
@@ -47,7 +47,10 @@ jest.mock('mongoose', () => {
             }
           }),
           close: jest.fn().mockResolvedValue(undefined),
-        })
+        }
+        return {
+          asPromise: jest.fn().mockResolvedValue(connection),
+        }
       }),
   }
 })

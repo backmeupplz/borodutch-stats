@@ -8,9 +8,6 @@
 
 import { createConnection } from 'mongoose'
 import {
-  BotUsersMetrics,
-} from './getBotUsers'
-import {
   ReachabilityMetrics,
   chatKindFromTelegramType,
   emptyReachabilityMetrics,
@@ -20,6 +17,11 @@ import { TelegramPool, PoolOptions } from './telegramPool'
 import { Checkpoint } from './checkpoint'
 
 const Telegraf = require('telegraf')
+
+export interface BotUsersMetrics {
+  legacyUserCount: number
+  reachability: ReachabilityMetrics
+}
 
 interface OptimizedOptions extends PoolOptions {
   chunkSize?: number
@@ -50,9 +52,9 @@ export async function getBotUsersOptimized(
   const checkpoint = new Checkpoint(name)
   await checkpoint.load()
 
-  const connection = await createConnection(mongo, {
+  const connection = await (createConnection(mongo, {
     useNewUrlParser: true,
-  })
+  } as any) as any).asPromise()
 
   const Chat = connection.collection(chatCollectionName)
 
@@ -161,9 +163,9 @@ export async function getBotUsersForSpellerOptimized(
   const checkpoint = new Checkpoint(name)
   await checkpoint.load()
 
-  const connection = await createConnection(mongo, {
+  const connection = await (createConnection(mongo, {
     useNewUrlParser: true,
-  })
+  } as any) as any).asPromise()
 
   const User = connection.collection('users')
   const userCount = await User.find().count()

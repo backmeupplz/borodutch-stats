@@ -4,9 +4,7 @@ import { createConnection } from 'mongoose'
 import { fixAggregation } from './fixAggregations'
 
 export async function getRandym() {
-  const connection = await createConnection(process.env.RANDYM, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(process.env.RANDYM).asPromise()
 
   const Raffle = connection.collection('raffles')
   const Chat = connection.collection('chats')

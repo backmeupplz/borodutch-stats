@@ -4,9 +4,9 @@ import { createConnection } from 'mongoose'
 import { fixAggregation } from './fixAggregations'
 
 export async function getCheckMyTextBot() {
-  const connection = await createConnection(process.env.CHECK_MY_TEXT_BOT, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(
+    process.env.CHECK_MY_TEXT_BOT
+  ).asPromise()
 
   const User = connection.collection('users')
   const userDaily = (

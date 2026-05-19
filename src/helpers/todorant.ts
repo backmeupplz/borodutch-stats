@@ -4,9 +4,7 @@ import { createConnection } from 'mongoose'
 import { fixAggregation } from './fixAggregations'
 
 export async function getTodorant() {
-  const connection = await createConnection(process.env.TODORANT, {
-    useNewUrlParser: true,
-  })
+  const connection = await createConnection(process.env.TODORANT).asPromise()
 
   const User = connection.collection('users')
   const userDaily = await User.aggregate(dailyCreatedConfig()).toArray()

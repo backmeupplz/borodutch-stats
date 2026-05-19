@@ -1,44 +1,53 @@
 import axios from 'axios'
 import { createConnection } from 'mongoose'
-import { getBotUsers, getBotUsersForSpeller } from './getBotUsers'
 import {
   getBotUsersOptimized,
   getBotUsersForSpellerOptimized,
 } from './optimizedGetBotUsers'
-import { BotUsersMetrics } from './getBotUsers'
 import { emptyReachabilityMetrics } from './reachability'
-import { appendFileSync, readFileSync } from 'fs'
+import { appendFileSync, mkdirSync, readFileSync } from 'fs'
 const Telegraf = require('telegraf')
+
+const userCountPath = `${__dirname}/../../usercount/usercount.txt`
+const minimumValidUserCount = 100_000_000
+const suspiciousHistoryWindow = 25
 
 // create usercount.txt if it does not exist
 try {
-  readFileSync(`${__dirname}/../../usercount/usercount.txt`, 'utf8')
+  mkdirSync(`${__dirname}/../../usercount`, { recursive: true })
+  readFileSync(userCountPath, 'utf8')
 } catch (err) {
-  appendFileSync(`${__dirname}/../../usercount/usercount.txt`, '')
+  appendFileSync(userCountPath, '')
   console.log('usercount.txt created')
 }
 
-let lastUserCount = 65345412
-const userCountLines = readFileSync(
-  `${__dirname}/../../usercount/usercount.txt`,
-  'utf8'
-).split('\n')
-try {
-  lastUserCount =
-    +userCountLines[userCountLines.length - 2].split(' ')[1] || 65345412
-} catch {
-  // do nothing
+function parseUserCountHistory() {
+  const history = readFileSync(userCountPath, 'utf8')
+  const historyItems = history
+    .split('\n')
+    .filter((v) => !!v)
+    .map((i) => i.split(' '))
+  const recentItems = historyItems.slice(-suspiciousHistoryWindow)
+  if (
+    recentItems.some(
+      (item) => Number(item[1]) > 0 && Number(item[1]) < minimumValidUserCount
+    )
+  ) {
+    return historyItems.slice(0, -suspiciousHistoryWindow)
+  }
+  return historyItems
 }
 
-console.log(
-  'Recovered user count',
-  lastUserCount,
-  userCountLines[userCountLines.length - 2]
-)
+let userCountHistory = parseUserCountHistory()
+let lastUserCount =
+  Number(userCountHistory[userCountHistory.length - 1]?.[1]) || 65345412
+
+console.log('Recovered user count', lastUserCount)
 
 export let userCount = {
   count: lastUserCount, // data on 2021-10-10 to initialize
-  history: [],
+  history: userCountHistory,
+  reachability: {} as { [index: string]: any },
 }
 
 export const userCountSeparate = {} as { [index: string]: number }
@@ -59,10 +68,7 @@ export async function runCollection(): Promise<{
 }> {
   // Add count history
   try {
-    const history = readFileSync(
-      `${__dirname}/../../usercount/usercount.txt`,
-      'utf8'
-    )
+    const history = readFileSync(userCountPath, 'utf8')
     const historyItems = history
       .split('\n')
       .filter(function (v) {
@@ -195,6 +201,7 @@ export async function runCollection(): Promise<{
     total: totalReachability,
     bots: reachabilityBots,
   }
+  userCount.reachability = userCountReachability
 
   // Final legacy count
   const resultCount = legacyResult
@@ -216,7 +223,7 @@ export async function runCollection(): Promise<{
 
   try {
     appendFileSync(
-      `${__dirname}/../../usercount/usercount.txt`,
+      userCountPath,
       `${Date.now()} ${resultCount}\n`
     )
   } catch (err) {
@@ -238,10 +245,7 @@ export async function runCollection(): Promise<{
 
   // Add count history
   try {
-    const history = readFileSync(
-      `${__dirname}/../../usercount/usercount.txt`,
-      'utf8'
-    )
+    const history = readFileSync(userCountPath, 'utf8')
     const historyItems = history
       .split('\n')
       .filter(function (v) {
@@ -255,22 +259,15 @@ export async function runCollection(): Promise<{
     console.log(err)
   }
 
-  // Send message to Telegram
-  try {
-    const bot = new Telegraf(process.env.TOKEN)
-    bot.telegram.sendMessage(
-      process.env.ADMIN,
-      'got overall number of users ' + resultCount + ' in ' + durationHours + 'h' +
-      '\nreachability: total=' + totalReachability.reachableChatCount +
-      ' private=' + totalReachability.reachablePrivateChatCount +
-      ' group=' + totalReachability.reachableGroupChatCount +
-      ' channel=' + totalReachability.reachableChannelCount +
-      ' audience=' + totalReachability.totalGroupAudienceEstimate +
-      ' unreachable=' + totalReachability.unreachableChatCount
-    )
-  } catch (err) {
-    console.log('Telegram notification failed:', err)
-  }
+  notifyAdmin(
+    'got overall number of users ' + resultCount + ' in ' + durationHours + 'h' +
+    '\nreachability: total=' + totalReachability.reachableChatCount +
+    ' private=' + totalReachability.reachablePrivateChatCount +
+    ' group=' + totalReachability.reachableGroupChatCount +
+    ' channel=' + totalReachability.reachableChannelCount +
+    ' audience=' + totalReachability.totalGroupAudienceEstimate +
+    ' unreachable=' + totalReachability.unreachableChatCount
+  )
 
   return {
     count: resultCount,
@@ -281,40 +278,28 @@ export async function runCollection(): Promise<{
 
 async function updateStats() {
   try {
-    await runCollection()
+    userCountHistory = parseUserCountHistory()
+    userCount.history = userCountHistory
+    userCount.count =
+      Number(userCountHistory[userCountHistory.length - 1]?.[1]) ||
+      userCount.count
   } catch (err) {
     console.error(err)
-    try {
-      const bot = new Telegraf(process.env.TOKEN)
-      bot.telegram.sendMessage(
-        process.env.ADMIN,
-        'Could not calculate user count ' + (err.message || String(err))
-      )
-    } catch (e) {
-      console.log('Telegram error notification failed:', e)
-    }
   }
+  console.log('+ user count recalculation is disabled')
 }
 
-let updating = false
-
-// Start collection on module load (server mode)
-if (process.env.STATS_ONE_SHOT !== 'true') {
-  updateStats()
-  setInterval(async function () {
-    if (updating) {
-      return
-    }
-    try {
-      updating = true
-      await updateStats()
-    } catch (err) {
-      console.error(err)
-    } finally {
-      updating = false
-    }
-  }, 24 * 60 * 60 * 1000)
+function notifyAdmin(message: string) {
+  if (!process.env.TOKEN || !process.env.ADMIN) {
+    return
+  }
+  const bot = new Telegraf(process.env.TOKEN)
+  bot.telegram.sendMessage(process.env.ADMIN, message).catch((err) => {
+    console.log(err)
+  })
 }
+
+updateStats()
 
 async function goldenBorodutch() {
   try {
@@ -330,9 +315,9 @@ async function goldenBorodutch() {
 }
 
 async function todorant() {
-  const connection = await createConnection(process.env.TODORANT as string, {
+  const connection = await (createConnection(process.env.TODORANT as string, {
     useNewUrlParser: true,
-  })
+  } as any) as any).asPromise()
   const User = connection.collection('users')
   const userCount = await User.find().count()
   await connection.close()
@@ -340,9 +325,9 @@ async function todorant() {
 }
 
 async function temply() {
-  const connection = await createConnection(process.env.TEMPLY as string, {
+  const connection = await (createConnection(process.env.TEMPLY as string, {
     useNewUrlParser: true,
-  })
+  } as any) as any).asPromise()
   const User = connection.collection('users')
   const userCount = await User.find().count()
   await connection.close()
