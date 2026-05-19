@@ -1,5 +1,5 @@
 // Dependencies
-import { userCount, userCountSeparate } from './userCount'
+import { userCount, userCountReachability, userCountSeparate } from './userCount'
 import axios from 'axios'
 import { getTemply } from './temply'
 import { getRandym } from './randym'
@@ -145,6 +145,7 @@ async function updateStats() {
   // User count
   stats.userCount = userCount
   stats.userCountSeparate = userCountSeparate
+  stats.userCountReachability = userCountReachability
 
   const end = new Date()
   console.info(
