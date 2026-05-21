@@ -6,6 +6,11 @@ import {
 } from './optimizedGetBotUsers'
 import { emptyReachabilityMetrics } from './reachability'
 import { appendFileSync, mkdirSync, readFileSync } from 'fs'
+import {
+  normalizeShieldyStats,
+  shieldyStatsUrl,
+  shieldyUserCount,
+} from './shieldy'
 const Telegraf = require('telegraf')
 
 const userCountPath = `${__dirname}/../../usercount/usercount.txt`
@@ -90,12 +95,17 @@ export async function runCollection(): Promise<{
 
   // Shieldy
   console.log('+ getting shieldy stats')
-  const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
-    .shieldy
-  const shieldyUsers = shieldyStats.userCount
-  legacyResult.push(shieldyUsers)
+  const shieldyStats = normalizeShieldyStats(
+    (await axios(shieldyStatsUrl)).data
+  )
+  const shieldyUsers = shieldyUserCount(shieldyStats)
+  if (shieldyUsers === undefined) {
+    console.log('+ shieldy user count unavailable; skipping shieldy contribution')
+  } else {
+    legacyResult.push(shieldyUsers)
+  }
   console.log('+ result ' + JSON.stringify(legacyResult))
-  userCountSeparate.shieldy = shieldyUsers
+  userCountSeparate.shieldy = shieldyUsers || 0
 
   // Golden borodutch
   console.log('+ getting golden borodutch stats')

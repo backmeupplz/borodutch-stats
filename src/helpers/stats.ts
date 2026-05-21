@@ -6,6 +6,7 @@ import { getRandym } from './randym'
 import { getBanofbot } from './banofbot'
 import { getTodorant } from './todorant'
 import { getCheckMyTextBot } from './checkMyTextBot'
+import { normalizeShieldyStats, shieldyStatsUrl } from './shieldy'
 
 export let stats: any = {}
 
@@ -15,12 +16,7 @@ async function updateStats() {
 
   // Shieldy
   try {
-    const shieldyStats = (await axios('http://142.93.135.209:1339/stats')).data
-      .shieldy
-    stats.shieldy = shieldyStats
-    if (stats.shieldy.chatDaily) {
-      stats.shieldy.chatDaily = stats.shieldy.chatDaily.reverse()
-    }
+    stats.shieldy = normalizeShieldyStats((await axios(shieldyStatsUrl)).data)
   } catch (err) {
     console.log(err)
   }
