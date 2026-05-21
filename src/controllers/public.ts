@@ -19,6 +19,7 @@ export default class {
   }
 
   @Get('stats/:project')
+  @Get('stats.:project')
   projectStats(ctx: Context) {
     ctx.body = projectStats(ctx.params.project)
   }
