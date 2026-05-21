@@ -21,11 +21,17 @@ function finiteNumber(value: any): number | undefined {
 }
 
 export function shieldyUserCount(stats: ShieldyStats): number | undefined {
-  return (
-    finiteNumber(stats.userCount) ||
-    finiteNumber(stats.chatCount) ||
-    finiteNumber(stats.chatDaily?.[stats.chatDaily.length - 1]?.count)
-  )
+  const explicitUserCount = finiteNumber(stats.userCount)
+  if (explicitUserCount !== undefined) {
+    return explicitUserCount
+  }
+
+  const chatCount = finiteNumber(stats.chatCount)
+  if (chatCount !== undefined) {
+    return chatCount
+  }
+
+  return finiteNumber(stats.chatDaily?.[stats.chatDaily.length - 1]?.count)
 }
 
 export function normalizeShieldyStats(payload: any): ShieldyStats {

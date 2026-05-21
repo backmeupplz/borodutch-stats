@@ -39,4 +39,18 @@ describe('Shieldy stats normalization', () => {
     expect(normalized.userCount).toBe(123)
     expect(normalized.userCountSource).toBe('userCount')
   })
+
+  test('keeps explicit zero userCount as valid evidence', () => {
+    const normalized = normalizeShieldyStats({
+      shieldy: {
+        userCount: 0,
+        chatCount: 456,
+        chatDaily: [{ _id: 1, count: 789 }],
+      },
+    })
+
+    expect(normalized.userCount).toBe(0)
+    expect(normalized.userCountSource).toBe('userCount')
+    expect(shieldyUserCount(normalized)).toBe(0)
+  })
 })
