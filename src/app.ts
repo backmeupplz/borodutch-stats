@@ -10,12 +10,13 @@ import * as cors from '@koa/cors'
 
 const app = new Koa()
 const router = loadControllers(`${__dirname}/controllers`, { recurse: true })
+const port = Number(process.env.PORT) || 1339
 
 // Run app
 app.use(cors({ origin: '*' }))
 app.use(bodyParser())
 app.use(router.routes())
 app.use(router.allowedMethods())
-app.listen(1339)
+app.listen(port)
 
-console.log('Koa application is up and running on port 1339')
+console.log(`Koa application is up and running on port ${port}`)

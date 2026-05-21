@@ -13,6 +13,7 @@
 | Name                | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
 | `CLOUDFLARE`        | Cloudflare API key                                                          |
+| `PORT`              | Optional HTTP port supplied by the deployment platform; defaults to `1339`  |
 | `STRIPE_SECRET_KEY` | Optional Stripe secret key for `/arr`; omit locally to return empty ARR data |
 
 ## Public endpoints
