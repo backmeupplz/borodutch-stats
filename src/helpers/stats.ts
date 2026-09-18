@@ -167,7 +167,7 @@ setInterval(async () => {
 
 export async function cloudflareData(id: string, name: string) {
   try {
-    console.log(`Getting Cloudflare data for ${id} ${process.env.CLOUDFLARE}`)
+    console.log(`Getting Cloudflare data for ${id}`)
     const threeMonthsAgo = new Date()
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
     const data = (

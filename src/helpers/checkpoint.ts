@@ -12,7 +12,8 @@ import {
 import { join } from 'path'
 import { createInterface } from 'readline'
 
-const CHECKPOINT_DIR = join(__dirname, '../../checkpoints')
+const CHECKPOINT_DIR =
+  process.env.STATS_CHECKPOINT_DIR || join(__dirname, '../../checkpoints')
 
 export interface ChatResult {
   chatId: number
@@ -191,10 +192,13 @@ export class Checkpoint {
   getLegacyCount(): number {
     let count = 0
     for (const result of this.results.values()) {
+      if (!result.reachable) {
+        continue
+      }
       if (result.kind === 'private') {
         count += 1
       } else if (
-        (result.kind === 'group' || result.kind === 'channel') &&
+        result.chatId < 0 &&
         typeof result.memberCount === 'number'
       ) {
         count += result.memberCount

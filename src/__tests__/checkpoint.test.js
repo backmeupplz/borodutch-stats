@@ -47,21 +47,21 @@ describe('Checkpoint', () => {
       checkedAt: 1,
     })
     cp.appendResult({
-      chatId: 2,
+      chatId: -2,
       reachable: true,
       kind: 'group',
       memberCount: 50,
       checkedAt: 2,
     })
     cp.appendResult({
-      chatId: 3,
+      chatId: -3,
       reachable: true,
       kind: 'group',
       memberCountUnavailable: true,
       checkedAt: 3,
     })
     cp.appendResult({
-      chatId: 4,
+      chatId: -4,
       reachable: true,
       kind: 'channel',
       checkedAt: 4,
@@ -92,21 +92,21 @@ describe('Checkpoint', () => {
       checkedAt: 1,
     })
     cp.appendResult({
-      chatId: 2,
+      chatId: -2,
       reachable: true,
       kind: 'group',
       memberCount: 50,
       checkedAt: 2,
     })
     cp.appendResult({
-      chatId: 3,
+      chatId: -3,
       reachable: true,
       kind: 'channel',
       memberCount: 200,
       checkedAt: 3,
     })
     cp.appendResult({
-      chatId: 4,
+      chatId: -4,
       reachable: true,
       kind: 'group',
       memberCountUnavailable: true,
