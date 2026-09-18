@@ -1,5 +1,17 @@
 # Borodutch stats code
 
+## Shadow reach counter
+
+`yarn collect-stats-shadow` calculates the headline reach without changing
+`usercount/usercount.txt` or the running API. It counts unique private chat IDs
+locally and checks only groups/channels through Telegram. Voicy transcription
+history and Randy raffle/edit/admin history are merged with their current `chats`
+collections so recoverable IDs lost by earlier database wipes are included.
+
+Set `STATS_CHECKPOINT_DIR` and `STATS_SHADOW_RESULT_PATH` to persistent paths.
+The result is written atomically. Any required source or transient Telegram
+failure makes the command fail instead of publishing a partial total.
+
 ## Installation and local launch
 
 1. Clone this repo: `git clone https://github.com/backmeupplz/borodutch-stats`

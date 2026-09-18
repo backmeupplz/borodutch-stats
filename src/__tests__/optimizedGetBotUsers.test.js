@@ -11,6 +11,20 @@ function cleanupCheckpoints() {
 }
 
 jest.mock('mongoose', () => {
+  function cursorFor(documents) {
+    let index = 0
+    return {
+      hasNext: jest.fn().mockImplementation(function () {
+        return Promise.resolve(index < documents.length)
+      }),
+      next: jest.fn().mockImplementation(function () {
+        return Promise.resolve(documents[index++])
+      }),
+      toArray: jest.fn().mockResolvedValue(documents),
+      count: jest.fn().mockResolvedValue(documents.length),
+    }
+  }
+
   return {
     createConnection: jest
       .fn()
@@ -19,30 +33,32 @@ jest.mock('mongoose', () => {
           collection: jest.fn().mockImplementation(function (name) {
             return {
               find: jest.fn().mockImplementation(function (query, opts) {
-                return {
-                  toArray: jest
-                    .fn()
-                    .mockImplementation(function () {
-                      if (name === 'chats') {
-                        return Promise.resolve([
-                          { id: '123' },
-                          { id: '124' },
-                          { id: '-100456' },
-                        ])
-                      }
-                      if (name === 'users') {
-                        return Promise.resolve([
-                          { channels: ['-100789'] },
-                          { channels: [] },
-                        ])
-                      }
-                      return Promise.resolve([])
-                    }),
-                  count: jest.fn().mockImplementation(function () {
-                    if (name === 'users') return Promise.resolve(2)
-                    return Promise.resolve(0)
-                  }),
+                if (name === 'chats') {
+                  return cursorFor([
+                    { id: '123' },
+                    { id: '124' },
+                    { id: '-100456' },
+                  ])
                 }
+                if (name === 'history') {
+                  return cursorFor([
+                    { chatId: '124' },
+                    { chatId: '-100456' },
+                    { chatId: '-100999' },
+                  ])
+                }
+                if (name === 'failing') {
+                  return cursorFor([{ chatId: '-100777' }])
+                }
+                if (name === 'users') {
+                  const cursor = cursorFor([
+                    { channels: ['-100789', '-100789'] },
+                    { channels: [] },
+                  ])
+                  cursor.count = jest.fn().mockResolvedValue(2)
+                  return cursor
+                }
+                return cursorFor([])
               }),
             }
           }),
@@ -75,6 +91,11 @@ jest.mock('telegraf', () => {
         getChatMember: jest
           .fn()
           .mockImplementation(function (chatId, botId) {
+            if (chatId === -100777) {
+              const err = new Error('timeout')
+              err.code = 'ETIMEDOUT'
+              throw err
+            }
             if (chatId === 403) {
               const err = new Error('Forbidden')
               err.response = { error_code: 403 }
@@ -160,6 +181,49 @@ describe('getBotUsersOptimized', () => {
     expect(result.reachability.reachableGroupChatCount).toBe(1)
     expect(result.reachability.totalGroupAudienceEstimate).toBe(100)
     expect(result.reachability.unavailableGroupMemberCount).toBe(0)
+  }, 30000)
+
+  test('deduplicates IDs recovered from secondary collections', async () => {
+    const result = await getBotUsersOptimized(
+      'test-recovered-bot',
+      'mongodb://fake',
+      'fake-token',
+      'id',
+      'chats',
+      {
+        concurrency: 5,
+        ratePerSecond: 100,
+        additionalChatSources: [
+          { collectionName: 'history', fieldNames: ['chatId'] },
+        ],
+      }
+    )
+
+    expect(result.inventory.privateIds).toBe(2)
+    expect(result.inventory.groupIds).toBe(2)
+    expect(result.inventory.sources[1]).toMatchObject({
+      duplicateValues: 2,
+      addedGroupIds: 1,
+    })
+    expect(result.legacyUserCount).toBe(202)
+  }, 30000)
+
+  test('fails closed when a Telegram call exhausts retries', async () => {
+    await expect(
+      getBotUsersOptimized(
+        'test-failing-bot',
+        'mongodb://fake',
+        'fake-token',
+        'chatId',
+        'failing',
+        {
+          concurrency: 1,
+          ratePerSecond: 100,
+          maxRetries: 1,
+          baseDelayMs: 1,
+        }
+      )
+    ).rejects.toThrow('Telegram failures; checkpoint preserved for retry')
   }, 30000)
 })
 
