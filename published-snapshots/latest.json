@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "mode": "published",
+  "published": true,
+  "generatedAt": "2026-09-18T10:15:46.520Z",
+  "publishedAt": "2026-09-18T18:00:14.000Z",
+  "total": 106687403,
+  "components": {
+    "shieldy": 61049739,
+    "goldenBorodutch": 65705,
+    "todorant": 39535,
+    "temply": 12175,
+    "speller": 203669,
+    "randy": 24542910,
+    "banofbot": 14492133,
+    "voicy": 6281537
+  },
+  "bots": {
+    "speller": {
+      "legacyUserCount": 203669,
+      "reachability": {
+        "reachableChatCount": 4532,
+        "reachablePrivateChatCount": 4472,
+        "reachableGroupChatCount": 60,
+        "reachableChannelCount": 0,
+        "totalGroupAudienceEstimate": 199197,
+        "unavailableGroupMemberCount": 0,
+        "unreachableChatCount": 117
+      },
+      "inventory": {
+        "privateIds": 4472,
+        "groupIds": 177,
+        "checkpointedGroups": 177,
+        "sources": [
+          {
+            "collectionName": "users",
+            "fieldNames": ["channels"],
+            "rawValues": 177,
+            "invalidValues": 0,
+            "duplicateValues": 0,
+            "addedPrivateIds": 4472,
+            "addedGroupIds": 177
+          }
+        ]
+      }
+    },
+    "randy": {
+      "legacyUserCount": 24542910,
+      "reachability": {
+        "reachableChatCount": 124411,
+        "reachablePrivateChatCount": 104486,
+        "reachableGroupChatCount": 19925,
+        "reachableChannelCount": 0,
+        "totalGroupAudienceEstimate": 24438424,
+        "unavailableGroupMemberCount": 0,
+        "unreachableChatCount": 28347
+      },
+      "inventory": {
+        "privateIds": 104486,
+        "groupIds": 48272,
+        "checkpointedGroups": 48272,
+        "sources": [
+          {
+            "collectionName": "chats",
+            "fieldNames": ["chatId"],
+            "rawValues": 152582,
+            "invalidValues": 0,
+            "duplicateValues": 199,
+            "addedPrivateIds": 104486,
+            "addedGroupIds": 47897
+          },
+          {
+            "collectionName": "raffles",
+            "fieldNames": ["chatId"],
+            "rawValues": 894048,
+            "invalidValues": 0,
+            "duplicateValues": 894040,
+            "addedPrivateIds": 0,
+            "addedGroupIds": 8
+          },
+          {
+            "collectionName": "chats",
+            "fieldNames": ["editedChatId", "adminChatIds"],
+            "rawValues": 184452,
+            "invalidValues": 170516,
+            "duplicateValues": 13569,
+            "addedPrivateIds": 0,
+            "addedGroupIds": 367
+          }
+        ]
+      }
+    },
+    "banofbot": {
+      "legacyUserCount": 14492133,
+      "reachability": {
+        "reachableChatCount": 286259,
+        "reachablePrivateChatCount": 267559,
+        "reachableGroupChatCount": 18700,
+        "reachableChannelCount": 0,
+        "totalGroupAudienceEstimate": 14224574,
+        "unavailableGroupMemberCount": 0,
+        "unreachableChatCount": 41894
+      },
+      "inventory": {
+        "privateIds": 267559,
+        "groupIds": 60594,
+        "checkpointedGroups": 60594,
+        "sources": [
+          {
+            "collectionName": "chats",
+            "fieldNames": ["id"],
+            "rawValues": 332954,
+            "invalidValues": 0,
+            "duplicateValues": 4801,
+            "addedPrivateIds": 267559,
+            "addedGroupIds": 60594
+          }
+        ]
+      }
+    },
+    "voicy": {
+      "legacyUserCount": 6281537,
+      "reachability": {
+        "reachableChatCount": 3810330,
+        "reachablePrivateChatCount": 3710584,
+        "reachableGroupChatCount": 99746,
+        "reachableChannelCount": 0,
+        "totalGroupAudienceEstimate": 2570953,
+        "unavailableGroupMemberCount": 0,
+        "unreachableChatCount": 291525
+      },
+      "inventory": {
+        "privateIds": 3710584,
+        "groupIds": 391271,
+        "checkpointedGroups": 391271,
+        "sources": [
+          {
+            "collectionName": "chats",
+            "fieldNames": ["id"],
+            "rawValues": 4154342,
+            "invalidValues": 2211,
+            "duplicateValues": 50333,
+            "addedPrivateIds": 3710552,
+            "addedGroupIds": 391246
+          },
+          {
+            "collectionName": "transcriptionjobs",
+            "fieldNames": ["chatId", "telegramChatId"],
+            "rawValues": 195026,
+            "invalidValues": 148,
+            "duplicateValues": 194821,
+            "addedPrivateIds": 32,
+            "addedGroupIds": 25
+          }
+        ]
+      }
+    }
+  }
+}

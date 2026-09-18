@@ -6,20 +6,31 @@ import {
 } from './optimizedGetBotUsers'
 import { emptyReachabilityMetrics } from './reachability'
 import { appendFileSync, mkdirSync, readFileSync } from 'fs'
+import { resolve } from 'path'
 import {
   normalizeShieldyStats,
   shieldyStatsUrl,
   shieldyUserCount,
 } from './shieldy'
+import {
+  aggregateReachability,
+  historyWithSnapshot,
+  installPublishedSeed,
+  publishedSnapshotMtime,
+  readPublishedSnapshot,
+} from './publishedSnapshot'
 const Telegraf = require('telegraf')
 
-const userCountPath = `${__dirname}/../../usercount/usercount.txt`
+const userCountPath = resolve(
+  process.env.STATS_USER_COUNT_HISTORY_PATH ||
+    `${__dirname}/../../usercount/usercount.txt`
+)
 const minimumValidUserCount = 100_000_000
 const suspiciousHistoryWindow = 25
 
 // create usercount.txt if it does not exist
 try {
-  mkdirSync(`${__dirname}/../../usercount`, { recursive: true })
+  mkdirSync(resolve(userCountPath, '..'), { recursive: true })
   readFileSync(userCountPath, 'utf8')
 } catch (err) {
   appendFileSync(userCountPath, '')
@@ -32,15 +43,11 @@ function parseUserCountHistory() {
     .split('\n')
     .filter((v) => !!v)
     .map((i) => i.split(' '))
-  const recentItems = historyItems.slice(-suspiciousHistoryWindow)
-  if (
-    recentItems.some(
-      (item) => Number(item[1]) > 0 && Number(item[1]) < minimumValidUserCount
-    )
-  ) {
-    return historyItems.slice(0, -suspiciousHistoryWindow)
-  }
-  return historyItems
+  const prefix = historyItems.slice(0, -suspiciousHistoryWindow)
+  const recentItems = historyItems.slice(-suspiciousHistoryWindow).filter(
+    (item) => Number(item[1]) >= minimumValidUserCount
+  )
+  return prefix.concat(recentItems)
 }
 
 let userCountHistory = parseUserCountHistory()
@@ -57,9 +64,51 @@ export let userCount = {
 
 export const userCountSeparate = {} as { [index: string]: number }
 
-export let userCountReachability = {
+export const userCountReachability = {
   total: emptyReachabilityMetrics(),
   bots: {} as { [index: string]: any },
+}
+
+const publishedSnapshotPath = resolve(
+  process.env.STATS_PUBLISHED_RESULT_PATH ||
+    `${__dirname}/../../usercount/latest.json`
+)
+const publishedSeedPath = resolve(
+  process.env.STATS_PUBLISHED_SEED_PATH ||
+    `${__dirname}/../../published-snapshots/latest.json`
+)
+let appliedSnapshotMtime: number | undefined
+
+export function refreshPublishedStatsSnapshot(force = false) {
+  try {
+    installPublishedSeed(publishedSeedPath, publishedSnapshotPath)
+    const mtime = publishedSnapshotMtime(publishedSnapshotPath)
+    if (mtime === undefined || (!force && mtime === appliedSnapshotMtime)) {
+      return false
+    }
+    const snapshot = readPublishedSnapshot(publishedSnapshotPath)
+    const history = historyWithSnapshot(parseUserCountHistory(), snapshot)
+
+    for (const key of Object.keys(userCountSeparate)) {
+      delete userCountSeparate[key]
+    }
+    Object.assign(userCountSeparate, snapshot.components)
+
+    for (const key of Object.keys(userCountReachability.bots)) {
+      delete userCountReachability.bots[key]
+    }
+    Object.assign(userCountReachability.bots, snapshot.bots)
+    Object.assign(userCountReachability.total, aggregateReachability(snapshot))
+
+    userCount.count = snapshot.total
+    userCount.history = history
+    userCount.reachability = userCountReachability
+    appliedSnapshotMtime = mtime
+    return true
+  } catch (err) {
+    console.error('+ keeping last known good published user count:', err)
+    return false
+  }
 }
 
 /**
@@ -207,10 +256,11 @@ export async function runCollection(): Promise<{
     totalReachability.unreachableChatCount += m.unreachableChatCount
   }
 
-  userCountReachability = {
-    total: totalReachability,
-    bots: reachabilityBots,
+  Object.assign(userCountReachability.total, totalReachability)
+  for (const key of Object.keys(userCountReachability.bots)) {
+    delete userCountReachability.bots[key]
   }
+  Object.assign(userCountReachability.bots, reachabilityBots)
   userCount.reachability = userCountReachability
 
   // Final legacy count
@@ -290,9 +340,11 @@ async function updateStats() {
   try {
     userCountHistory = parseUserCountHistory()
     userCount.history = userCountHistory
-    userCount.count =
-      Number(userCountHistory[userCountHistory.length - 1]?.[1]) ||
-      userCount.count
+    if (!refreshPublishedStatsSnapshot(true)) {
+      userCount.count =
+        Number(userCountHistory[userCountHistory.length - 1]?.[1]) ||
+        userCount.count
+    }
   } catch (err) {
     console.error(err)
   }

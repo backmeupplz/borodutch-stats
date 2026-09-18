@@ -12,6 +12,20 @@ Set `STATS_CHECKPOINT_DIR` and `STATS_SHADOW_RESULT_PATH` to persistent paths.
 The result is written atomically. Any required source or transient Telegram
 failure makes the command fail instead of publishing a partial total.
 
+## Published reach snapshot
+
+The API reads a validated snapshot from `STATS_PUBLISHED_RESULT_PATH` (default:
+`usercount/latest.json`) before serving `/stats`, `/summary`, `/count`, or
+`/reachability`. Updates are detected without restarting the server. A snapshot
+is accepted only when it is explicitly marked as published, contains every
+required project and bot result, and its total exactly matches its components.
+Invalid or partial files leave the last known good values in memory.
+
+For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
+managed file. A valid newer seed is copied atomically into the persistent result
+path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
+100,000,000.
+
 ## Installation and local launch
 
 1. Clone this repo: `git clone https://github.com/backmeupplz/borodutch-stats`

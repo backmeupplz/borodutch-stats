@@ -40,6 +40,7 @@ jest.mock('../../dist/helpers/summary', () => ({
 }))
 
 jest.mock('../../dist/helpers/userCount', () => ({
+  refreshPublishedStatsSnapshot: jest.fn(),
   userCount: {
     count: 123,
     history: [['1710000000000', '123']],
