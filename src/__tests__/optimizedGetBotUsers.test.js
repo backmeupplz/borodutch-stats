@@ -114,6 +114,17 @@ jest.mock('telegraf', () => {
         getChatMembersCount: jest
           .fn()
           .mockImplementation(function (chatId) {
+            if (chatId === -100700) {
+              const err = new Error('Group migrated during member count')
+              err.response = {
+                error_code: 400,
+                parameters: { migrate_to_chat_id: -100800 },
+              }
+              throw err
+            }
+            if (chatId === -100800) {
+              return Promise.resolve(222)
+            }
             return Promise.resolve(chatId === -100600 ? 321 : 100)
           }),
       },
@@ -307,6 +318,24 @@ describe('getBotUsersFromChatIdsOptimized', () => {
         unreachableChatCount: 0,
       })
     }
+  })
+
+  test('follows a migration returned by the member-count call', async () => {
+    const result = await getBotUsersFromChatIdsOptimized(
+      'member-count-migration-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100700]),
+      { concurrency: 5, ratePerSecond: 100, refreshAll: true }
+    )
+
+    expect(result.legacyUserCount).toBe(222)
+    expect(result.reachability).toMatchObject({
+      reachableChatCount: 1,
+      reachableGroupChatCount: 1,
+      totalGroupAudienceEstimate: 222,
+      unreachableChatCount: 0,
+    })
   })
 })
 

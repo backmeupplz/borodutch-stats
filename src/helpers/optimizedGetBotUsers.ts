@@ -406,6 +406,12 @@ async function checkChatReachability(
     if (isRetryableError(err)) {
       throw err
     }
+    const migratedId = migratedChatId(err)
+    if (migratedId !== undefined) {
+      const migrated = await checkChatReachability(bot, botId, migratedId)
+      migrated.canonicalChatId = migratedId
+      return migrated
+    }
     throw new Error('Telegram member count unavailable for ' + chatId)
   }
 }
