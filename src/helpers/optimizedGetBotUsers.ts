@@ -144,6 +144,14 @@ async function processGroups(
 }> {
   const checkpoint = new Checkpoint(name)
   await checkpoint.load()
+  const aggregateGroupIds = new Set(groupIds)
+  for (const id of groupIds) {
+    const saved = checkpoint.getResult(id)
+    if (saved && saved.canonicalChatId !== undefined) {
+      aggregateGroupIds.delete(id)
+      aggregateGroupIds.add(saved.canonicalChatId)
+    }
+  }
   const pending = options.refreshAll
     ? Array.from(groupIds)
     : Array.from(groupIds).filter(function (id) {
@@ -172,8 +180,11 @@ async function processGroups(
           })
           .then(function (result) {
             if (result.canonicalChatId && result.canonicalChatId !== id) {
+              aggregateGroupIds.delete(id)
+              aggregateGroupIds.add(result.canonicalChatId)
               checkpoint.appendResult({
                 chatId: id,
+                canonicalChatId: result.canonicalChatId,
                 reachable: false,
                 kind: 'unknown',
                 checkedAt: Date.now(),
@@ -225,8 +236,8 @@ async function processGroups(
   }
 
   return {
-    metrics: checkpoint.getMetrics(groupIds),
-    legacyCount: checkpoint.getLegacyCount(groupIds),
+    metrics: checkpoint.getMetrics(aggregateGroupIds),
+    legacyCount: checkpoint.getLegacyCount(aggregateGroupIds),
     checkpointedGroups: groupIds.size,
   }
 }

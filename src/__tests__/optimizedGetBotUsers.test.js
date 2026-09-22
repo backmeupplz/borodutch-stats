@@ -91,6 +91,14 @@ jest.mock('telegraf', () => {
         getChatMember: jest
           .fn()
           .mockImplementation(function (chatId, botId) {
+            if (chatId === -100500) {
+              const err = new Error('Group migrated')
+              err.response = {
+                error_code: 400,
+                parameters: { migrate_to_chat_id: -100600 },
+              }
+              throw err
+            }
             if (chatId === -100777) {
               const err = new Error('timeout')
               err.code = 'ETIMEDOUT'
@@ -103,7 +111,11 @@ jest.mock('telegraf', () => {
             }
             return Promise.resolve({ status: 'member' })
           }),
-        getChatMembersCount: jest.fn().mockResolvedValue(100),
+        getChatMembersCount: jest
+          .fn()
+          .mockImplementation(function (chatId) {
+            return Promise.resolve(chatId === -100600 ? 321 : 100)
+          }),
       },
     }
   }
@@ -261,6 +273,40 @@ describe('getBotUsersFromChatIdsOptimized', () => {
       groupIds: 1,
       checkpointedGroups: 1,
     })
+  })
+
+  test('counts a migrated community under its canonical Telegram ID', async () => {
+    const refreshed = await getBotUsersFromChatIdsOptimized(
+      'migrated-community-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100500]),
+      { concurrency: 5, ratePerSecond: 100, refreshAll: true }
+    )
+    const resumed = await getBotUsersFromChatIdsOptimized(
+      'migrated-community-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100500]),
+      { concurrency: 5, ratePerSecond: 100 }
+    )
+    const deduplicated = await getBotUsersFromChatIdsOptimized(
+      'migrated-community-duplicate-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100500, -100600]),
+      { concurrency: 5, ratePerSecond: 100, refreshAll: true }
+    )
+
+    for (const result of [refreshed, resumed, deduplicated]) {
+      expect(result.legacyUserCount).toBe(321)
+      expect(result.reachability).toMatchObject({
+        reachableChatCount: 1,
+        reachableGroupChatCount: 1,
+        totalGroupAudienceEstimate: 321,
+        unreachableChatCount: 0,
+      })
+    }
   })
 })
 

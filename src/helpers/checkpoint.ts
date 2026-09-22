@@ -17,6 +17,7 @@ const CHECKPOINT_DIR =
 
 export interface ChatResult {
   chatId: number
+  canonicalChatId?: number
   reachable: boolean
   kind: 'private' | 'group' | 'channel' | 'unknown'
   memberCount?: number
@@ -71,6 +72,8 @@ export class Checkpoint {
           self.processedIds.add(entry.id)
           self.results.set(entry.id, {
             chatId: entry.id,
+            canonicalChatId:
+              typeof entry.c === 'number' ? entry.c : undefined,
             reachable: entry.r,
             kind: entry.k,
             memberCount:
@@ -107,6 +110,7 @@ export class Checkpoint {
   appendResult(result: ChatResult): void {
     const line = JSON.stringify({
       id: result.chatId,
+      c: result.canonicalChatId,
       r: result.reachable,
       k: result.kind,
       m: result.memberCount,
