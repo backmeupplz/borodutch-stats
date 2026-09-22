@@ -408,8 +408,10 @@ function migratedChatId(err: any): number | undefined {
 }
 
 export function isRetryableError(err: any): boolean {
+  const errorCode = err && err.response && err.response.error_code
   return (
-    (err && err.response && err.response.error_code === 429) ||
+    errorCode === 429 ||
+    (errorCode >= 500 && errorCode < 600) ||
     (err && err.code === 'ETIMEDOUT') ||
     (err && err.code === 'ECONNRESET') ||
     (err && err.code === 'ECONNREFUSED') ||

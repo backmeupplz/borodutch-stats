@@ -114,6 +114,30 @@ describe('TelegramPool', () => {
     pool.destroy()
   })
 
+  test('retries transient Telegram server errors', async () => {
+    const pool = new TelegramPool({
+      concurrency: 1,
+      ratePerSecond: 1000,
+      maxRetries: 2,
+      baseDelayMs: 1,
+    })
+    let attempts = 0
+
+    const result = await pool.execute(async function () {
+      attempts++
+      if (attempts < 2) {
+        const err = new Error('Bad Gateway')
+        err.response = { error_code: 502 }
+        throw err
+      }
+      return 'success'
+    })
+
+    expect(result).toBe('success')
+    expect(attempts).toBe(2)
+    pool.destroy()
+  })
+
   test('does not retry non-retryable errors', async () => {
     const pool = new TelegramPool({
       concurrency: 1,

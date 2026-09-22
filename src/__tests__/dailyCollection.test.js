@@ -151,6 +151,17 @@ describe('daily collection publication', () => {
     expect(result.generatedAt).toBe('2026-09-22T18:00:00.000Z')
   })
 
+  test('bounds a stalled daily source before publication', async () => {
+    await expect(
+      require('../../dist/helpers/dailyCollection').collectDailyStats(
+        baselineSnapshot(),
+        () => new Promise(function () {}),
+        () => new Date('2026-09-22T18:00:00.000Z'),
+        5
+      )
+    ).rejects.toThrow('Daily stats collection timed out')
+  })
+
   test('preserves the last known good file when collection fails', async () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'stats-daily-'))
     const outputPath = path.join(directory, 'latest.json')

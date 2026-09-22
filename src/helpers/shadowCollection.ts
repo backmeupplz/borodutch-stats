@@ -46,6 +46,8 @@ function requiredEnv(name: string): string {
 async function collectionCount(uri: string, collectionName: string) {
   const connection = await (createConnection(uri, {
     useNewUrlParser: true,
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
   } as any) as any).asPromise()
   try {
     return await connection.collection(collectionName).find().count()
@@ -55,7 +57,9 @@ async function collectionCount(uri: string, collectionName: string) {
 }
 
 async function goldenBorodutchCount() {
-  const html = (await axios.get('https://t.me/golden_borodutch')).data
+  const html = (
+    await axios.get('https://t.me/golden_borodutch', { timeout: 10000 })
+  ).data
   const match = /<div class="tgme_page_extra">(.+) \D+/.exec(html)
   if (!match) {
     throw new Error('Golden Borodutch subscriber count is unavailable')
@@ -69,7 +73,7 @@ async function goldenBorodutchCount() {
 
 export async function collectLiveHeadlineInputs(): Promise<LiveHeadlineInputs> {
   const results = await Promise.all([
-    axios(shieldyStatsUrl),
+    axios(shieldyStatsUrl, { timeout: 10000 }),
     goldenBorodutchCount(),
     collectionCount(requiredEnv('TODORANT'), 'users'),
     collectionCount(requiredEnv('TEMPLY'), 'users'),

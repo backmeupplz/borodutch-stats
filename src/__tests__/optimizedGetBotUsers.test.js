@@ -133,6 +133,12 @@ describe('isRetryableError', () => {
     expect(isRetryableError(err2)).toBe(true)
   })
 
+  test('identifies Telegram server errors as retryable', () => {
+    const err = new Error('Bad Gateway')
+    err.response = { error_code: 502 }
+    expect(isRetryableError(err)).toBe(true)
+  })
+
   test('does not identify 404 as retryable', () => {
     const err = new Error('Not found')
     err.response = { error_code: 404 }

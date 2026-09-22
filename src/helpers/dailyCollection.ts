@@ -47,12 +47,25 @@ export async function collectDailyStats(
   collectLive: () => Promise<LiveHeadlineInputs> = collectLiveHeadlineInputs,
   now: () => Date = function () {
     return new Date()
-  }
+  },
+  timeoutMs: number = 30 * 60 * 1000
 ): Promise<ShadowCollectionResult> {
   const startedAt = Date.now()
+  let timeout: ReturnType<typeof setTimeout>
+  const live = await Promise.race([
+    collectLive(),
+    new Promise<never>(function (_, reject) {
+      timeout = setTimeout(function () {
+        reject(new Error('Daily stats collection timed out'))
+      }, timeoutMs)
+      timeout.unref()
+    }),
+  ]).finally(function () {
+    clearTimeout(timeout)
+  })
   const result = dailyCollectionFromSnapshot(
     previous,
-    await collectLive(),
+    live,
     now()
   )
   result.durationSeconds = Math.round((Date.now() - startedAt) / 1000)

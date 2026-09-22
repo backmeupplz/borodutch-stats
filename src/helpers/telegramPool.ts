@@ -113,8 +113,9 @@ export class TelegramPool {
   }
 
   private isRetryable(err: any): boolean {
-    // Telegram 429 Too Many Requests
-    if (err && err.response && err.response.error_code === 429) {
+    const errorCode = err && err.response && err.response.error_code
+    // Telegram 429 Too Many Requests and transient Bot API/server failures.
+    if (errorCode === 429 || (errorCode >= 500 && errorCode < 600)) {
       return true
     }
     // Network / transient errors
