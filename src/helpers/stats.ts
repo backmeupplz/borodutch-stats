@@ -1,6 +1,7 @@
 // Dependencies
 import {
   jevAntispamStats,
+  refreshPublishedStatsSnapshot,
   userCount,
   userCountReachability,
   userCountSeparate,
@@ -18,6 +19,7 @@ export let stats: any = {}
 async function updateStats() {
   console.info('Started updating')
   const start = new Date()
+  refreshPublishedStatsSnapshot()
 
   // Shieldy
   try {

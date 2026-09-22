@@ -21,10 +21,22 @@ is accepted only when it is explicitly marked as published, contains every
 required project and bot result, and its total exactly matches its components.
 Invalid or partial files leave the last known good values in memory.
 
-`yarn collect-stats` performs the complete collection and publication. Jev
-Antispam's PostgreSQL totals and current Telegram community reach are collected
-in that same run; any database or Telegram failure leaves the published
-snapshot untouched.
+`yarn collect-stats-daily` (also available as `yarn collect-stats`) starts from
+the validated last-published snapshot, carries forward the expensive historical
+bot scans, and refreshes Shieldy, Golden Borodutch, Todorant, Temply, and Jev in
+one lightweight run. Jev's PostgreSQL totals and every current Telegram
+community are refreshed before the complete snapshot is validated and
+atomically replaced. Any source, database, or Telegram failure leaves the
+published snapshot untouched. The command is also available for manual or
+deployment-platform one-shot runs.
+
+`yarn collect-stats-shadow` remains the explicit full historical scan. It can
+take hours and writes only `STATS_SHADOW_RESULT_PATH`; it is not the daily
+publication path.
+
+The server starts the same collector one minute after boot and repeats it every
+24 hours after a successful publication. Failed collections keep the last known
+good snapshot and retry after one hour.
 
 For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
 managed file. A valid newer seed is copied atomically into the persistent result

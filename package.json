@@ -15,6 +15,7 @@
     "watch-js": "nodemon dist/app.js",
     "test": "tsc --skipLibCheck && jest",
     "collect-stats": "STATS_ONE_SHOT=true node scripts/collect-stats.js",
+    "collect-stats-daily": "STATS_ONE_SHOT=true node scripts/collect-stats.js",
     "collect-stats-shadow": "node scripts/collect-stats-shadow.js"
   },
   "devDependencies": {

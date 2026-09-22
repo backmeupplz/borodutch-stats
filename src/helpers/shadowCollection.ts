@@ -27,6 +27,14 @@ export interface ShadowCollectionResult {
   }
 }
 
+export interface LiveHeadlineInputs {
+  shieldy: number
+  goldenBorodutch: number
+  todorant: number
+  temply: number
+  jevAntispam: Awaited<ReturnType<typeof getJevAntispamStats>>
+}
+
 function requiredEnv(name: string): string {
   const value = process.env[name]
   if (!value) {
@@ -59,6 +67,31 @@ async function goldenBorodutchCount() {
   return count
 }
 
+export async function collectLiveHeadlineInputs(): Promise<LiveHeadlineInputs> {
+  const results = await Promise.all([
+    axios(shieldyStatsUrl),
+    goldenBorodutchCount(),
+    collectionCount(requiredEnv('TODORANT'), 'users'),
+    collectionCount(requiredEnv('TEMPLY'), 'users'),
+    getJevAntispamStats(
+      requiredEnv('JEV_DATABASE_URL'),
+      requiredEnv('JEV_TELEGRAM_BOT_TOKEN')
+    ),
+  ])
+  const shieldy = shieldyUserCount(normalizeShieldyStats(results[0].data))
+  if (shieldy === undefined) {
+    throw new Error('Shieldy user count is unavailable')
+  }
+
+  return {
+    shieldy: shieldy,
+    goldenBorodutch: results[1],
+    todorant: results[2],
+    temply: results[3],
+    jevAntispam: results[4],
+  }
+}
+
 export function writeResultAtomically(result: ShadowCollectionResult) {
   const outputPath = resolve(
     process.env.STATS_SHADOW_RESULT_PATH || 'shadow-results/latest.json'
@@ -74,66 +107,55 @@ export function writeResultAtomically(result: ShadowCollectionResult) {
 
 export async function collectStats(): Promise<ShadowCollectionResult> {
   const startedAt = Date.now()
-  const shieldyStats = normalizeShieldyStats((await axios(shieldyStatsUrl)).data)
-  const shieldy = shieldyUserCount(shieldyStats)
-  if (shieldy === undefined) {
-    throw new Error('Shieldy user count is unavailable')
-  }
-
-  const fixedCounts = await Promise.all([
-    goldenBorodutchCount(),
-    collectionCount(requiredEnv('TODORANT'), 'users'),
-    collectionCount(requiredEnv('TEMPLY'), 'users'),
+  const results = await Promise.all([
+    collectLiveHeadlineInputs(),
+    Promise.all([
+      getBotUsersForSpellerOptimized(
+        '@check_my_text_bot',
+        requiredEnv('CHECK_MY_TEXT_BOT'),
+        requiredEnv('CHECK_MY_TEXT_BOT_TOKEN')
+      ),
+      getBotUsersOptimized(
+        '@randymbot',
+        requiredEnv('RANDYM'),
+        requiredEnv('RANDYM_TOKEN'),
+        'chatId',
+        'chats',
+        {
+          additionalChatSources: [
+            { collectionName: 'raffles', fieldNames: ['chatId'] },
+            {
+              collectionName: 'chats',
+              fieldNames: ['editedChatId', 'adminChatIds'],
+            },
+          ],
+        }
+      ),
+      getBotUsersOptimized(
+        '@banofbot',
+        requiredEnv('BANOFBOT'),
+        requiredEnv('BANOFBOT_TOKEN')
+      ),
+      getBotUsersOptimized(
+        '@voicy_bot',
+        requiredEnv('VOICY'),
+        requiredEnv('VOICY_TOKEN'),
+        'id',
+        'chats',
+        {
+          additionalChatSources: [
+            {
+              collectionName: 'transcriptionjobs',
+              fieldNames: ['chatId', 'telegramChatId'],
+            },
+          ],
+        }
+      ),
+    ]),
   ])
-
-  const botResults = await Promise.all([
-    getBotUsersForSpellerOptimized(
-      '@check_my_text_bot',
-      requiredEnv('CHECK_MY_TEXT_BOT'),
-      requiredEnv('CHECK_MY_TEXT_BOT_TOKEN')
-    ),
-    getBotUsersOptimized(
-      '@randymbot',
-      requiredEnv('RANDYM'),
-      requiredEnv('RANDYM_TOKEN'),
-      'chatId',
-      'chats',
-      {
-        additionalChatSources: [
-          { collectionName: 'raffles', fieldNames: ['chatId'] },
-          {
-            collectionName: 'chats',
-            fieldNames: ['editedChatId', 'adminChatIds'],
-          },
-        ],
-      }
-    ),
-    getBotUsersOptimized(
-      '@banofbot',
-      requiredEnv('BANOFBOT'),
-      requiredEnv('BANOFBOT_TOKEN')
-    ),
-    getBotUsersOptimized(
-      '@voicy_bot',
-      requiredEnv('VOICY'),
-      requiredEnv('VOICY_TOKEN'),
-      'id',
-      'chats',
-      {
-        additionalChatSources: [
-          {
-            collectionName: 'transcriptionjobs',
-            fieldNames: ['chatId', 'telegramChatId'],
-          },
-        ],
-      }
-    ),
-    getJevAntispamStats(
-      requiredEnv('JEV_DATABASE_URL'),
-      requiredEnv('JEV_TELEGRAM_BOT_TOKEN')
-    ),
-  ])
-  const jevAntispam = botResults[4]
+  const live = results[0]
+  const botResults = results[1]
+  const jevAntispam = live.jevAntispam
 
   const bots = {
     speller: botResults[0],
@@ -143,10 +165,10 @@ export async function collectStats(): Promise<ShadowCollectionResult> {
     jevAntispam: jevAntispam.bot,
   }
   const components = {
-    shieldy: shieldy,
-    goldenBorodutch: fixedCounts[0],
-    todorant: fixedCounts[1],
-    temply: fixedCounts[2],
+    shieldy: live.shieldy,
+    goldenBorodutch: live.goldenBorodutch,
+    todorant: live.todorant,
+    temply: live.temply,
     speller: bots.speller.legacyUserCount,
     randy: bots.randy.legacyUserCount,
     banofbot: bots.banofbot.legacyUserCount,

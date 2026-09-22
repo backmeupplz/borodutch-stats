@@ -116,6 +116,7 @@ export async function runCollection(): Promise<{
   perBot: typeof userCountSeparate
 }> {
   const startedAt = Date.now()
+  installPublishedSeed(publishedSeedPath, publishedSnapshotPath)
   const snapshot = await collectAndPublish(publishedSnapshotPath)
 
   try {
@@ -156,6 +157,31 @@ export async function runCollection(): Promise<{
     reachability: userCountReachability,
     perBot: userCountSeparate,
   }
+}
+
+const dailyCollectionIntervalMs = 24 * 60 * 60 * 1000
+const failedCollectionRetryMs = 60 * 60 * 1000
+let collectionTimer: ReturnType<typeof setTimeout> | undefined
+
+export function startDailyCollection() {
+  if (collectionTimer) {
+    return
+  }
+
+  const collect = async () => {
+    let nextDelay = dailyCollectionIntervalMs
+    try {
+      await runCollection()
+    } catch (err) {
+      console.error('+ daily stats collection failed; retrying in one hour:', err)
+      nextDelay = failedCollectionRetryMs
+    }
+    collectionTimer = setTimeout(collect, nextDelay)
+    collectionTimer.unref()
+  }
+
+  collectionTimer = setTimeout(collect, 60 * 1000)
+  collectionTimer.unref()
 }
 
 function updateStats() {
