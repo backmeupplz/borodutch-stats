@@ -320,6 +320,58 @@ describe('getBotUsersFromChatIdsOptimized', () => {
     }
   })
 
+  test('repairs a migrated community from a pre-versioned checkpoint', async () => {
+    const checkpointPath = path.join(
+      __dirname,
+      '../../checkpoints/legacy-migrated-community-bot.jsonl'
+    )
+    fs.mkdirSync(path.dirname(checkpointPath), { recursive: true })
+    fs.writeFileSync(
+      checkpointPath,
+      [
+        JSON.stringify({
+          id: -100500,
+          r: false,
+          k: 'unknown',
+          t: 1,
+        }),
+        JSON.stringify({
+          id: -100600,
+          r: true,
+          k: 'unknown',
+          m: 321,
+          t: 1,
+        }),
+      ].join('\n') + '\n'
+    )
+
+    const repaired = await getBotUsersFromChatIdsOptimized(
+      'legacy-migrated-community-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100500]),
+      { concurrency: 5, ratePerSecond: 100 }
+    )
+    const resumed = await getBotUsersFromChatIdsOptimized(
+      'legacy-migrated-community-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100500]),
+      { concurrency: 5, ratePerSecond: 100 }
+    )
+
+    for (const result of [repaired, resumed]) {
+      expect(result.legacyUserCount).toBe(321)
+      expect(result.reachability).toMatchObject({
+        reachableChatCount: 1,
+        reachableGroupChatCount: 1,
+        totalGroupAudienceEstimate: 321,
+        unreachableChatCount: 0,
+      })
+    }
+    expect(fs.readFileSync(checkpointPath, 'utf8')).toContain('"v":2')
+  })
+
   test('follows a migration returned by the member-count call', async () => {
     const result = await getBotUsersFromChatIdsOptimized(
       'member-count-migration-bot',

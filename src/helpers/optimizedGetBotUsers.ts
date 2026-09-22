@@ -155,7 +155,10 @@ async function processGroups(
   const pending = options.refreshAll
     ? Array.from(groupIds)
     : Array.from(groupIds).filter(function (id) {
-        return !checkpoint.isProcessed(id)
+        return (
+          !checkpoint.isProcessed(id) ||
+          checkpoint.needsLegacyMigrationRefresh(id)
+        )
       })
   const pool = new TelegramPool(options)
   const bot = new Telegraf(telegramToken, { channelMode: true })

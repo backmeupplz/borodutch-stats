@@ -144,6 +144,31 @@ describe('Checkpoint', () => {
     expect(cp2.size()).toBe(2)
   })
 
+  test('marks only legacy unreachable records for one-time refresh', async () => {
+    fs.mkdirSync(CHECKPOINT_DIR, { recursive: true })
+    fs.writeFileSync(
+      path.join(CHECKPOINT_DIR, 'legacy-format-test.jsonl'),
+      [
+        JSON.stringify({ id: -10, r: false, k: 'unknown', t: 1 }),
+        JSON.stringify({ id: -11, r: true, k: 'group', m: 20, t: 1 }),
+      ].join('\n') + '\n'
+    )
+
+    const cp = new Checkpoint('legacy-format-test')
+    await cp.load()
+    expect(cp.needsLegacyMigrationRefresh(-10)).toBe(true)
+    expect(cp.needsLegacyMigrationRefresh(-11)).toBe(false)
+
+    cp.appendResult({
+      chatId: -10,
+      reachable: false,
+      kind: 'unknown',
+      checkedAt: 2,
+    })
+    expect(cp.needsLegacyMigrationRefresh(-10)).toBe(false)
+    await cp.close()
+  })
+
   test('remove deletes checkpoint file', async () => {
     const cp = new Checkpoint('remove-test')
     cp.appendResult({
