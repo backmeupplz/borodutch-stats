@@ -99,4 +99,30 @@ describe('summary stats', () => {
       voicy: 987654,
     })
   })
+
+  test('labels Jev headline reach separately from ordinary user counts', () => {
+    resetStats({
+      userCountSeparate: {
+        jevAntispam: 230275,
+      },
+      jevAntispam: {
+        knownChatCount: 654,
+        successfulDeletionCount: 5337,
+      },
+    })
+
+    expect(summary()).toMatchObject({
+      jevAntispam: {
+        knownChatCount: 654,
+        successfulDeletionCount: 5337,
+      },
+      projectCounts: {
+        jevAntispam: {
+          count: 230275,
+          label: 'people reached',
+          source: 'userCountSeparate',
+        },
+      },
+    })
+  })
 })

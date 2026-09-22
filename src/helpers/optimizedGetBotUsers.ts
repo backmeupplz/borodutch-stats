@@ -42,6 +42,7 @@ export interface BotUsersMetrics {
 interface OptimizedOptions extends PoolOptions {
   chunkSize?: number
   additionalChatSources?: ChatIdSource[]
+  refreshAll?: boolean
 }
 
 const DEFAULT_OPTIONS: OptimizedOptions = {
@@ -52,6 +53,7 @@ const DEFAULT_OPTIONS: OptimizedOptions = {
   baseDelayMs: 1000,
   chunkSize: 500,
   additionalChatSources: [],
+  refreshAll: false,
 }
 
 function parseChatId(value: any): number | undefined {
@@ -142,9 +144,11 @@ async function processGroups(
 }> {
   const checkpoint = new Checkpoint(name)
   await checkpoint.load()
-  const pending = Array.from(groupIds).filter(function (id) {
-    return !checkpoint.isProcessed(id)
-  })
+  const pending = options.refreshAll
+    ? Array.from(groupIds)
+    : Array.from(groupIds).filter(function (id) {
+        return !checkpoint.isProcessed(id)
+      })
   const pool = new TelegramPool(options)
   const bot = new Telegraf(telegramToken, { channelMode: true })
   const botInfo = await bot.telegram.getMe()
@@ -221,9 +225,41 @@ async function processGroups(
   }
 
   return {
-    metrics: checkpoint.getMetrics(),
-    legacyCount: checkpoint.getLegacyCount(),
-    checkpointedGroups: checkpoint.size(),
+    metrics: checkpoint.getMetrics(groupIds),
+    legacyCount: checkpoint.getLegacyCount(groupIds),
+    checkpointedGroups: groupIds.size,
+  }
+}
+
+export async function getBotUsersFromChatIdsOptimized(
+  name: string,
+  telegramToken: string,
+  privateIds: Set<number>,
+  groupIds: Set<number>,
+  options: Partial<OptimizedOptions> = {}
+): Promise<BotUsersMetrics> {
+  const opts = Object.assign({}, DEFAULT_OPTIONS, options)
+  const groups = await processGroups(name, telegramToken, groupIds, opts)
+  const reachability: ReachabilityMetrics = {
+    reachableChatCount:
+      privateIds.size + groups.metrics.reachableChatCount,
+    reachablePrivateChatCount: privateIds.size,
+    reachableGroupChatCount: groups.metrics.reachableGroupChatCount,
+    reachableChannelCount: groups.metrics.reachableChannelCount,
+    totalGroupAudienceEstimate: groups.metrics.totalGroupAudienceEstimate,
+    unavailableGroupMemberCount:
+      groups.metrics.unavailableGroupMemberCount,
+    unreachableChatCount: groups.metrics.unreachableChatCount,
+  }
+  return {
+    legacyUserCount: privateIds.size + groups.legacyCount,
+    reachability: reachability,
+    inventory: {
+      privateIds: privateIds.size,
+      groupIds: groupIds.size,
+      checkpointedGroups: groups.checkpointedGroups,
+      sources: [],
+    },
   }
 }
 
@@ -245,28 +281,15 @@ export async function getBotUsersOptimized(
 
   try {
     const ids = await collectChatIds(connection, sources)
-    const groups = await processGroups(name, telegramToken, ids.groupIds, opts)
-    const reachability: ReachabilityMetrics = {
-      reachableChatCount:
-        ids.privateIds.size + groups.metrics.reachableChatCount,
-      reachablePrivateChatCount: ids.privateIds.size,
-      reachableGroupChatCount: groups.metrics.reachableGroupChatCount,
-      reachableChannelCount: groups.metrics.reachableChannelCount,
-      totalGroupAudienceEstimate: groups.metrics.totalGroupAudienceEstimate,
-      unavailableGroupMemberCount:
-        groups.metrics.unavailableGroupMemberCount,
-      unreachableChatCount: groups.metrics.unreachableChatCount,
-    }
-    return {
-      legacyUserCount: ids.privateIds.size + groups.legacyCount,
-      reachability: reachability,
-      inventory: {
-        privateIds: ids.privateIds.size,
-        groupIds: ids.groupIds.size,
-        checkpointedGroups: groups.checkpointedGroups,
-        sources: ids.inventory,
-      },
-    }
+    const result = await getBotUsersFromChatIdsOptimized(
+      name,
+      telegramToken,
+      ids.privateIds,
+      ids.groupIds,
+      opts
+    )
+    result.inventory.sources = ids.inventory
+    return result
   } finally {
     await connection.close()
   }

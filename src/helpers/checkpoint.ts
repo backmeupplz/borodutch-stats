@@ -146,7 +146,7 @@ export class Checkpoint {
   /**
    * Compute aggregate reachability metrics from all saved results.
    */
-  getMetrics(): CheckpointMetrics {
+  getMetrics(chatIds?: Set<number>): CheckpointMetrics {
     let reachableChatCount = 0
     let reachablePrivateChatCount = 0
     let reachableGroupChatCount = 0
@@ -154,8 +154,13 @@ export class Checkpoint {
     let totalGroupAudienceEstimate = 0
     let unavailableGroupMemberCount = 0
     let unreachableChatCount = 0
+    const results = chatIds
+      ? Array.from(this.results.values()).filter(function (result) {
+          return chatIds.has(result.chatId)
+        })
+      : this.results.values()
 
-    for (const result of this.results.values()) {
+    for (const result of results) {
       if (!result.reachable) {
         unreachableChatCount++
         continue
@@ -189,9 +194,14 @@ export class Checkpoint {
   /**
    * Compute the legacy user count (1 per private chat + memberCount per group).
    */
-  getLegacyCount(): number {
+  getLegacyCount(chatIds?: Set<number>): number {
     let count = 0
-    for (const result of this.results.values()) {
+    const results = chatIds
+      ? Array.from(this.results.values()).filter(function (result) {
+          return chatIds.has(result.chatId)
+        })
+      : this.results.values()
+    for (const result of results) {
       if (!result.reachable) {
         continue
       }

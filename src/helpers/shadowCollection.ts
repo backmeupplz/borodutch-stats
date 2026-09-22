@@ -12,6 +12,7 @@ import {
   shieldyStatsUrl,
   shieldyUserCount,
 } from './shieldy'
+import { getJevAntispamStats, JevAntispamStats } from './jevAntispam'
 
 export interface ShadowCollectionResult {
   mode: 'shadow'
@@ -21,6 +22,9 @@ export interface ShadowCollectionResult {
   total: number
   components: { [name: string]: number }
   bots: { [name: string]: BotUsersMetrics }
+  projects: {
+    jevAntispam: JevAntispamStats
+  }
 }
 
 function requiredEnv(name: string): string {
@@ -68,7 +72,7 @@ export function writeResultAtomically(result: ShadowCollectionResult) {
   renameSync(temporaryPath, outputPath)
 }
 
-export async function runShadowCollection(): Promise<ShadowCollectionResult> {
+export async function collectStats(): Promise<ShadowCollectionResult> {
   const startedAt = Date.now()
   const shieldyStats = normalizeShieldyStats((await axios(shieldyStatsUrl)).data)
   const shieldy = shieldyUserCount(shieldyStats)
@@ -124,13 +128,19 @@ export async function runShadowCollection(): Promise<ShadowCollectionResult> {
         ],
       }
     ),
+    getJevAntispamStats(
+      requiredEnv('JEV_DATABASE_URL'),
+      requiredEnv('JEV_TELEGRAM_BOT_TOKEN')
+    ),
   ])
+  const jevAntispam = botResults[4]
 
   const bots = {
     speller: botResults[0],
     randy: botResults[1],
     banofbot: botResults[2],
     voicy: botResults[3],
+    jevAntispam: jevAntispam.bot,
   }
   const components = {
     shieldy: shieldy,
@@ -141,6 +151,7 @@ export async function runShadowCollection(): Promise<ShadowCollectionResult> {
     randy: bots.randy.legacyUserCount,
     banofbot: bots.banofbot.legacyUserCount,
     voicy: bots.voicy.legacyUserCount,
+    jevAntispam: bots.jevAntispam.legacyUserCount,
   }
   const total = Object.keys(components).reduce(function (sum, key) {
     return sum + components[key]
@@ -153,7 +164,15 @@ export async function runShadowCollection(): Promise<ShadowCollectionResult> {
     total: total,
     components: components,
     bots: bots,
+    projects: {
+      jevAntispam: jevAntispam.stats,
+    },
   }
+  return result
+}
+
+export async function runShadowCollection(): Promise<ShadowCollectionResult> {
+  const result = await collectStats()
   writeResultAtomically(result)
   return result
 }

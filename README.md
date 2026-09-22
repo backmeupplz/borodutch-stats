@@ -21,6 +21,11 @@ is accepted only when it is explicitly marked as published, contains every
 required project and bot result, and its total exactly matches its components.
 Invalid or partial files leave the last known good values in memory.
 
+`yarn collect-stats` performs the complete collection and publication. Jev
+Antispam's PostgreSQL totals and current Telegram community reach are collected
+in that same run; any database or Telegram failure leaves the published
+snapshot untouched.
+
 For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
 managed file. A valid newer seed is copied atomically into the persistent result
 path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
@@ -39,6 +44,8 @@ path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
 | Name                | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
 | `CLOUDFLARE`        | Cloudflare API key                                                          |
+| `JEV_DATABASE_URL`  | Private read access to Jev Antispam's PostgreSQL database                   |
+| `JEV_TELEGRAM_BOT_TOKEN` | Jev Antispam Telegram token for current community member counts       |
 | `PORT`              | Optional HTTP port supplied by the deployment platform; defaults to `1339`  |
 | `STRIPE_SECRET_KEY` | Optional Stripe secret key for `/arr`; omit locally to return empty ARR data |
 
