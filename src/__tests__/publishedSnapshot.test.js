@@ -69,6 +69,26 @@ describe('published stats snapshots', () => {
     expect(validatePublishedSnapshot(snapshot()).total).toBe(106687403)
   })
 
+  test('keeps pre-history schema-2 snapshots readable during additive rollout', () => {
+    const value = snapshot()
+    value.schemaVersion = 2
+    value.components.jevAntispam = 106
+    value.total += 106
+    value.bots.jevAntispam = bot(106)
+    value.projects = {
+      jevAntispam: {
+        knownChatCount: 14,
+        privateChatCount: 6,
+        reachableCommunityCount: 4,
+        combinedCommunityAudience: 100,
+        successfulDeletionCount: 7,
+      },
+    }
+
+    expect(validatePublishedSnapshot(value).projects.jevAntispam)
+      .toEqual(value.projects.jevAntispam)
+  })
+
   test('rejects partial or inconsistent totals', () => {
     const value = snapshot()
     value.total -= 1

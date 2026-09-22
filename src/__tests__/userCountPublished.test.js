@@ -88,4 +88,91 @@ describe('published user count startup', () => {
       [String(Date.parse('2026-09-18T10:15:46.520Z')), '106687403'],
     ])
   })
+
+  test('replaces optional Jev history when a newer pre-history snapshot loads', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'stats-user-count-'))
+    const historyPath = path.join(directory, 'usercount.txt')
+    const resultPath = path.join(directory, 'latest.json')
+    fs.writeFileSync(historyPath, '')
+    const components = {
+      shieldy: 61049739,
+      goldenBorodutch: 65705,
+      todorant: 39535,
+      temply: 12175,
+      speller: 203669,
+      randy: 24542910,
+      banofbot: 14492133,
+      voicy: 6281537,
+      jevAntispam: 1,
+    }
+    const bots = {
+      speller: bot(components.speller),
+      randy: bot(components.randy),
+      banofbot: bot(components.banofbot),
+      voicy: bot(components.voicy),
+      jevAntispam: bot(components.jevAntispam),
+    }
+    const jevAntispam = {
+      knownChatCount: 1,
+      privateChatCount: 1,
+      reachableCommunityCount: 0,
+      combinedCommunityAudience: 0,
+      successfulDeletionCount: 7,
+      processedMessageCount: 11,
+      history: [{
+        date: '2026-09-19',
+        knownChatCount: 1,
+        processedMessageCount: 11,
+        successfulDeletionCount: 7,
+      }],
+    }
+    const total = Object.values(components).reduce((sum, value) => sum + value, 0)
+
+    writePublishedSnapshotAtomically(resultPath, {
+      schemaVersion: 2,
+      mode: 'published',
+      published: true,
+      generatedAt: '2026-09-19T10:15:46.520Z',
+      publishedAt: '2026-09-19T17:00:00.000Z',
+      total,
+      components,
+      bots,
+      projects: { jevAntispam },
+    })
+    process.env.STATS_USER_COUNT_HISTORY_PATH = historyPath
+    process.env.STATS_PUBLISHED_RESULT_PATH = resultPath
+    jest.resetModules()
+
+    const data = require('../../dist/helpers/userCount')
+    expect(data.jevAntispamStats.processedMessageCount).toBe(11)
+
+    writePublishedSnapshotAtomically(resultPath, {
+      schemaVersion: 2,
+      mode: 'published',
+      published: true,
+      generatedAt: '2026-09-20T10:15:46.520Z',
+      publishedAt: '2026-09-20T17:00:00.000Z',
+      total,
+      components,
+      bots,
+      projects: {
+        jevAntispam: {
+          knownChatCount: 1,
+          privateChatCount: 1,
+          reachableCommunityCount: 0,
+          combinedCommunityAudience: 0,
+          successfulDeletionCount: 7,
+        },
+      },
+    })
+
+    expect(data.refreshPublishedStatsSnapshot(true)).toBe(true)
+    expect(data.jevAntispamStats).toEqual({
+      knownChatCount: 1,
+      privateChatCount: 1,
+      reachableCommunityCount: 0,
+      combinedCommunityAudience: 0,
+      successfulDeletionCount: 7,
+    })
+  })
 })

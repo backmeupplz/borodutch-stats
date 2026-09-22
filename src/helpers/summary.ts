@@ -1,6 +1,6 @@
 import { stats } from './stats'
 
-type CountLabel = 'users' | 'chats' | 'people reached'
+type CountLabel = 'users' | 'chats'
 
 export type ProjectCountSummary = {
   count: number
@@ -43,7 +43,7 @@ export function deriveProjectCounts(source: any): {
   for (const key of Object.keys(userCountSeparate)) {
     const projectCount = count(
       userCountSeparate[key],
-      key === 'jevAntispam' ? 'people reached' : 'users',
+      'users',
       'userCountSeparate'
     )
     if (projectCount) {

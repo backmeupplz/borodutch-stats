@@ -189,10 +189,12 @@ export class Checkpoint {
       reachableChatCount++
       if (result.kind === 'private') {
         reachablePrivateChatCount++
-      } else if (result.kind === 'channel') {
-        reachableChannelCount++
       } else {
-        reachableGroupChatCount++
+        if (result.kind === 'channel') {
+          reachableChannelCount++
+        } else {
+          reachableGroupChatCount++
+        }
         if (typeof result.memberCount === 'number') {
           totalGroupAudienceEstimate += result.memberCount
         } else if (result.memberCountUnavailable) {

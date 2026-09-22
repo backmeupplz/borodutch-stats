@@ -389,6 +389,52 @@ describe('getBotUsersFromChatIdsOptimized', () => {
       unreachableChatCount: 0,
     })
   })
+
+  test('keeps checkpointed channel subscribers in legacy and audience totals', async () => {
+    const checkpointPath = path.join(
+      __dirname,
+      '../../checkpoints/test-group-and-channel-bot.jsonl'
+    )
+    fs.mkdirSync(path.dirname(checkpointPath), { recursive: true })
+    fs.writeFileSync(
+      checkpointPath,
+      [
+        JSON.stringify({
+          v: 2,
+          id: -100900,
+          r: true,
+          k: 'group',
+          m: 75,
+          t: 1,
+        }),
+        JSON.stringify({
+          v: 2,
+          id: -100901,
+          r: true,
+          k: 'channel',
+          m: 125,
+          t: 1,
+        }),
+      ].join('\n') + '\n'
+    )
+
+    const result = await getBotUsersFromChatIdsOptimized(
+      'test-group-and-channel-bot',
+      'fake-token',
+      new Set(),
+      new Set([-100900, -100901]),
+      { concurrency: 5, ratePerSecond: 100 }
+    )
+
+    expect(result.legacyUserCount).toBe(200)
+    expect(result.reachability).toMatchObject({
+      reachableChatCount: 2,
+      reachableGroupChatCount: 1,
+      reachableChannelCount: 1,
+      totalGroupAudienceEstimate: 200,
+      unreachableChatCount: 0,
+    })
+  })
 })
 
 describe('getBotUsersForSpellerOptimized', () => {

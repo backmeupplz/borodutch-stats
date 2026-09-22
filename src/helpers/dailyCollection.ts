@@ -9,12 +9,59 @@ import {
   readPublishedSnapshot,
   writePublishedSnapshotAtomically,
 } from './publishedSnapshot'
+import {
+  JevAntispamHistoryPoint,
+  JevAntispamStats,
+} from './jevAntispam'
+
+export function historyWithJevStats(
+  history: JevAntispamHistoryPoint[],
+  stats: JevAntispamStats,
+  generatedAt: Date
+): JevAntispamHistoryPoint[] {
+  const knownChatCount = requiredCounter(
+    stats.knownChatCount,
+    'knownChatCount'
+  )
+  const processedMessageCount = requiredCounter(
+    stats.processedMessageCount,
+    'processedMessageCount'
+  )
+  const successfulDeletionCount = requiredCounter(
+    stats.successfulDeletionCount,
+    'successfulDeletionCount'
+  )
+  const date = generatedAt.toISOString().slice(0, 10)
+  return history.filter(function (point) {
+    return point.date !== date
+  }).concat([{
+    date: date,
+    knownChatCount: knownChatCount,
+    processedMessageCount: processedMessageCount,
+    successfulDeletionCount: successfulDeletionCount,
+  }])
+}
+
+function requiredCounter(value: any, name: string): number {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error('Jev ' + name + ' must be a non-negative integer')
+  }
+  return value
+}
 
 export function dailyCollectionFromSnapshot(
   previous: PublishedStatsSnapshot,
   live: LiveHeadlineInputs,
   generatedAt: Date = new Date()
 ): ShadowCollectionResult {
+  const generatedAtDate = generatedAt
+  const jevAntispam = Object.assign({}, live.jevAntispam.stats, {
+    history: historyWithJevStats(
+      previous.projects?.jevAntispam.history || [],
+      live.jevAntispam.stats,
+      generatedAtDate
+    ),
+  })
   const components = Object.assign({}, previous.components, {
     shieldy: live.shieldy,
     goldenBorodutch: live.goldenBorodutch,
@@ -29,7 +76,7 @@ export function dailyCollectionFromSnapshot(
   return {
     mode: 'shadow',
     published: false,
-    generatedAt: generatedAt.toISOString(),
+    generatedAt: generatedAtDate.toISOString(),
     durationSeconds: 0,
     total: Object.keys(components).reduce(function (sum, name) {
       return sum + components[name]
@@ -37,7 +84,7 @@ export function dailyCollectionFromSnapshot(
     components: components,
     bots: bots,
     projects: {
-      jevAntispam: live.jevAntispam.stats,
+      jevAntispam: jevAntispam,
     },
   }
 }
