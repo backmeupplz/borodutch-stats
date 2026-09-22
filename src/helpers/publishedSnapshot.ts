@@ -9,8 +9,10 @@ import {
 import { dirname, resolve } from 'path'
 import { BotUsersMetrics } from './optimizedGetBotUsers'
 import { emptyReachabilityMetrics, ReachabilityMetrics } from './reachability'
+import type { JevAntispamStats } from './jevAntispam'
+import type { ShadowCollectionResult } from './shadowCollection'
 
-const requiredComponents = [
+const schema1Components = [
   'shieldy',
   'goldenBorodutch',
   'todorant',
@@ -20,7 +22,7 @@ const requiredComponents = [
   'banofbot',
   'voicy',
 ]
-const requiredBots = ['speller', 'randy', 'banofbot', 'voicy']
+const schema1Bots = ['speller', 'randy', 'banofbot', 'voicy']
 const metricKeys: Array<keyof ReachabilityMetrics> = [
   'reachableChatCount',
   'reachablePrivateChatCount',
@@ -32,7 +34,7 @@ const metricKeys: Array<keyof ReachabilityMetrics> = [
 ]
 
 export interface PublishedStatsSnapshot {
-  schemaVersion: 1
+  schemaVersion: 1 | 2
   mode: 'published'
   published: true
   generatedAt: string
@@ -40,6 +42,9 @@ export interface PublishedStatsSnapshot {
   total: number
   components: { [name: string]: number }
   bots: { [name: string]: BotUsersMetrics }
+  projects?: {
+    jevAntispam: JevAntispamStats
+  }
 }
 
 function nonNegativeInteger(value: any, name: string): number {
@@ -89,8 +94,12 @@ export function validatePublishedSnapshot(input: any): PublishedStatsSnapshot {
   if (!input || typeof input !== 'object') {
     throw new Error('Published snapshot must be an object')
   }
-  if (input.schemaVersion !== 1 || input.mode !== 'published' || input.published !== true) {
-    throw new Error('Snapshot is not an explicitly published schema version 1 result')
+  if (
+    (input.schemaVersion !== 1 && input.schemaVersion !== 2) ||
+    input.mode !== 'published' ||
+    input.published !== true
+  ) {
+    throw new Error('Snapshot is not an explicitly published supported result')
   }
   validDate(input.generatedAt, 'generatedAt')
   validDate(input.publishedAt, 'publishedAt')
@@ -99,6 +108,10 @@ export function validatePublishedSnapshot(input: any): PublishedStatsSnapshot {
   }
 
   let componentTotal = 0
+  const requiredComponents =
+    input.schemaVersion === 2
+      ? schema1Components.concat(['jevAntispam'])
+      : schema1Components
   for (const name of requiredComponents) {
     componentTotal += nonNegativeInteger(
       input.components[name],
@@ -120,13 +133,91 @@ export function validatePublishedSnapshot(input: any): PublishedStatsSnapshot {
   if (!input.bots || typeof input.bots !== 'object') {
     throw new Error('bots are required')
   }
+  const requiredBots =
+    input.schemaVersion === 2
+      ? schema1Bots.concat(['jevAntispam'])
+      : schema1Bots
   for (const name of requiredBots) {
     const bot = validateBot(name, input.bots[name])
     if (bot.legacyUserCount !== input.components[name]) {
       throw new Error('components.' + name + ' does not match its bot result')
     }
   }
+  if (input.schemaVersion === 2) {
+    validateJevAntispam(input)
+  }
   return input as PublishedStatsSnapshot
+}
+
+function validateJevAntispam(input: any) {
+  const value = input.projects && input.projects.jevAntispam
+  if (!value || typeof value !== 'object') {
+    throw new Error('projects.jevAntispam is required')
+  }
+  const knownChatCount = nonNegativeInteger(
+    value.knownChatCount,
+    'projects.jevAntispam.knownChatCount'
+  )
+  const privateChatCount = nonNegativeInteger(
+    value.privateChatCount,
+    'projects.jevAntispam.privateChatCount'
+  )
+  const reachableCommunityCount = nonNegativeInteger(
+    value.reachableCommunityCount,
+    'projects.jevAntispam.reachableCommunityCount'
+  )
+  const combinedCommunityAudience = nonNegativeInteger(
+    value.combinedCommunityAudience,
+    'projects.jevAntispam.combinedCommunityAudience'
+  )
+  nonNegativeInteger(
+    value.successfulDeletionCount,
+    'projects.jevAntispam.successfulDeletionCount'
+  )
+
+  const bot = input.bots.jevAntispam
+  if (knownChatCount !== bot.inventory.privateIds + bot.inventory.groupIds) {
+    throw new Error('Jev known chat count does not match its inventory')
+  }
+  if (privateChatCount !== bot.reachability.reachablePrivateChatCount) {
+    throw new Error('Jev private chat count does not match its reachability')
+  }
+  if (
+    reachableCommunityCount !==
+    bot.reachability.reachableGroupChatCount +
+      bot.reachability.reachableChannelCount
+  ) {
+    throw new Error('Jev community count does not match its reachability')
+  }
+  if (
+    combinedCommunityAudience !==
+    bot.reachability.totalGroupAudienceEstimate
+  ) {
+    throw new Error('Jev community audience does not match its reachability')
+  }
+  if (
+    bot.legacyUserCount !==
+    privateChatCount + combinedCommunityAudience
+  ) {
+    throw new Error('Jev headline contribution is internally inconsistent')
+  }
+}
+
+export function publishedSnapshotFromCollection(
+  result: ShadowCollectionResult,
+  publishedAt: Date = new Date()
+): PublishedStatsSnapshot {
+  return validatePublishedSnapshot({
+    schemaVersion: 2,
+    mode: 'published',
+    published: true,
+    generatedAt: result.generatedAt,
+    publishedAt: publishedAt.toISOString(),
+    total: result.total,
+    components: result.components,
+    bots: result.bots,
+    projects: result.projects,
+  })
 }
 
 export function readPublishedSnapshot(path: string): PublishedStatsSnapshot {
@@ -174,6 +265,10 @@ export function publishedSnapshotMtime(path: string): number | undefined {
 
 export function aggregateReachability(snapshot: PublishedStatsSnapshot) {
   const total = emptyReachabilityMetrics()
+  const requiredBots =
+    snapshot.schemaVersion === 2
+      ? schema1Bots.concat(['jevAntispam'])
+      : schema1Bots
   for (const name of requiredBots) {
     const metrics = snapshot.bots[name].reachability
     for (const key of metricKeys) {

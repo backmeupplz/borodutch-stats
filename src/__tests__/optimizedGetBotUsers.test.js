@@ -110,6 +110,7 @@ jest.mock('telegraf', () => {
 })
 
 const {
+  getBotUsersFromChatIdsOptimized,
   getBotUsersOptimized,
   getBotUsersForSpellerOptimized,
   isRetryableError,
@@ -130,6 +131,12 @@ describe('isRetryableError', () => {
     const err2 = new Error('reset')
     err2.code = 'ECONNRESET'
     expect(isRetryableError(err2)).toBe(true)
+  })
+
+  test('identifies Telegram server errors as retryable', () => {
+    const err = new Error('Bad Gateway')
+    err.response = { error_code: 502 }
+    expect(isRetryableError(err)).toBe(true)
   })
 
   test('does not identify 404 as retryable', () => {
@@ -225,6 +232,36 @@ describe('getBotUsersOptimized', () => {
       )
     ).rejects.toThrow('Telegram failures; checkpoint preserved for retry')
   }, 30000)
+})
+
+describe('getBotUsersFromChatIdsOptimized', () => {
+  beforeEach(cleanupCheckpoints)
+  afterAll(cleanupCheckpoints)
+
+  test('refreshes and aggregates only the current database inventory', async () => {
+    const first = await getBotUsersFromChatIdsOptimized(
+      'current-inventory-bot',
+      'fake-token',
+      new Set([123]),
+      new Set([-100456]),
+      { concurrency: 5, ratePerSecond: 100, refreshAll: true }
+    )
+    const second = await getBotUsersFromChatIdsOptimized(
+      'current-inventory-bot',
+      'fake-token',
+      new Set([124]),
+      new Set([-100999]),
+      { concurrency: 5, ratePerSecond: 100, refreshAll: true }
+    )
+
+    expect(first.legacyUserCount).toBe(101)
+    expect(second.legacyUserCount).toBe(101)
+    expect(second.inventory).toMatchObject({
+      privateIds: 1,
+      groupIds: 1,
+      checkpointedGroups: 1,
+    })
+  })
 })
 
 describe('getBotUsersForSpellerOptimized', () => {

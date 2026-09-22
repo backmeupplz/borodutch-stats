@@ -7,6 +7,7 @@ import * as Koa from 'koa'
 import bodyParser from 'koa-bodyparser-ts'
 import { loadControllers } from 'koa-router-ts'
 import * as cors from '@koa/cors'
+import { startDailyCollection } from './helpers/userCount'
 
 const app = new Koa()
 const router = loadControllers(`${__dirname}/controllers`, { recurse: true })
@@ -18,5 +19,8 @@ app.use(bodyParser())
 app.use(router.routes())
 app.use(router.allowedMethods())
 app.listen(port)
+if (process.env.STATS_DAILY_COLLECTION_ENABLED === 'true') {
+  startDailyCollection()
+}
 
 console.log(`Koa application is up and running on port ${port}`)

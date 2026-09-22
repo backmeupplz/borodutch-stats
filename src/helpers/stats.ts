@@ -1,5 +1,11 @@
 // Dependencies
-import { userCount, userCountReachability, userCountSeparate } from './userCount'
+import {
+  jevAntispamStats,
+  refreshPublishedStatsSnapshot,
+  userCount,
+  userCountReachability,
+  userCountSeparate,
+} from './userCount'
 import axios from 'axios'
 import { getTemply } from './temply'
 import { getRandym } from './randym'
@@ -13,6 +19,7 @@ export let stats: any = {}
 async function updateStats() {
   console.info('Started updating')
   const start = new Date()
+  refreshPublishedStatsSnapshot()
 
   // Shieldy
   try {
@@ -142,6 +149,7 @@ async function updateStats() {
   stats.userCount = userCount
   stats.userCountSeparate = userCountSeparate
   stats.userCountReachability = userCountReachability
+  stats.jevAntispam = jevAntispamStats
 
   const end = new Date()
   console.info(

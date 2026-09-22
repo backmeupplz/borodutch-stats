@@ -21,6 +21,26 @@ is accepted only when it is explicitly marked as published, contains every
 required project and bot result, and its total exactly matches its components.
 Invalid or partial files leave the last known good values in memory.
 
+`yarn collect-stats-daily` (also available as `yarn collect-stats`) starts from
+the validated last-published snapshot, carries forward the expensive historical
+bot scans, and refreshes Shieldy, Golden Borodutch, Todorant, Temply, and Jev in
+one lightweight run. Jev's PostgreSQL totals and every current Telegram
+community are refreshed before the complete snapshot is validated and
+atomically replaced. Any source, database, or Telegram failure leaves the
+published snapshot untouched. The command is also available for manual or
+deployment-platform one-shot runs.
+
+`yarn collect-stats-shadow` remains the explicit full historical scan. It can
+take hours and writes only `STATS_SHADOW_RESULT_PATH`; it is not the daily
+publication path.
+
+With `STATS_DAILY_COLLECTION_ENABLED=true`, the API server starts the same
+collector one minute after boot and repeats it every 24 hours after a successful
+publication. Failed collections keep the last known good snapshot and retry
+after one hour. Running it in the API process lets publication use the same
+`STATS_PUBLISHED_RESULT_PATH` volume the API already reads; keep a single API
+replica while this scheduler is enabled.
+
 For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
 managed file. A valid newer seed is copied atomically into the persistent result
 path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
@@ -39,7 +59,10 @@ path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
 | Name                | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
 | `CLOUDFLARE`        | Cloudflare API key                                                          |
+| `JEV_DATABASE_URL`  | Private read access to Jev Antispam's PostgreSQL database                   |
+| `JEV_TELEGRAM_BOT_TOKEN` | Jev Antispam Telegram token for current community member counts       |
 | `PORT`              | Optional HTTP port supplied by the deployment platform; defaults to `1339`  |
+| `STATS_DAILY_COLLECTION_ENABLED` | Set to `true` on one API replica to run the daily publisher   |
 | `STRIPE_SECRET_KEY` | Optional Stripe secret key for `/arr`; omit locally to return empty ARR data |
 
 ## Public endpoints

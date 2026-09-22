@@ -12,6 +12,7 @@ import {
   shieldyStatsUrl,
   shieldyUserCount,
 } from './shieldy'
+import { getJevAntispamStats, JevAntispamStats } from './jevAntispam'
 
 export interface ShadowCollectionResult {
   mode: 'shadow'
@@ -21,6 +22,17 @@ export interface ShadowCollectionResult {
   total: number
   components: { [name: string]: number }
   bots: { [name: string]: BotUsersMetrics }
+  projects: {
+    jevAntispam: JevAntispamStats
+  }
+}
+
+export interface LiveHeadlineInputs {
+  shieldy: number
+  goldenBorodutch: number
+  todorant: number
+  temply: number
+  jevAntispam: Awaited<ReturnType<typeof getJevAntispamStats>>
 }
 
 function requiredEnv(name: string): string {
@@ -34,6 +46,8 @@ function requiredEnv(name: string): string {
 async function collectionCount(uri: string, collectionName: string) {
   const connection = await (createConnection(uri, {
     useNewUrlParser: true,
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
   } as any) as any).asPromise()
   try {
     return await connection.collection(collectionName).find().count()
@@ -43,7 +57,9 @@ async function collectionCount(uri: string, collectionName: string) {
 }
 
 async function goldenBorodutchCount() {
-  const html = (await axios.get('https://t.me/golden_borodutch')).data
+  const html = (
+    await axios.get('https://t.me/golden_borodutch', { timeout: 10000 })
+  ).data
   const match = /<div class="tgme_page_extra">(.+) \D+/.exec(html)
   if (!match) {
     throw new Error('Golden Borodutch subscriber count is unavailable')
@@ -53,6 +69,31 @@ async function goldenBorodutchCount() {
     throw new Error('Golden Borodutch subscriber count is invalid')
   }
   return count
+}
+
+export async function collectLiveHeadlineInputs(): Promise<LiveHeadlineInputs> {
+  const results = await Promise.all([
+    axios(shieldyStatsUrl, { timeout: 10000 }),
+    goldenBorodutchCount(),
+    collectionCount(requiredEnv('TODORANT'), 'users'),
+    collectionCount(requiredEnv('TEMPLY'), 'users'),
+    getJevAntispamStats(
+      requiredEnv('JEV_DATABASE_URL'),
+      requiredEnv('JEV_TELEGRAM_BOT_TOKEN')
+    ),
+  ])
+  const shieldy = shieldyUserCount(normalizeShieldyStats(results[0].data))
+  if (shieldy === undefined) {
+    throw new Error('Shieldy user count is unavailable')
+  }
+
+  return {
+    shieldy: shieldy,
+    goldenBorodutch: results[1],
+    todorant: results[2],
+    temply: results[3],
+    jevAntispam: results[4],
+  }
 }
 
 export function writeResultAtomically(result: ShadowCollectionResult) {
@@ -68,79 +109,75 @@ export function writeResultAtomically(result: ShadowCollectionResult) {
   renameSync(temporaryPath, outputPath)
 }
 
-export async function runShadowCollection(): Promise<ShadowCollectionResult> {
+export async function collectStats(): Promise<ShadowCollectionResult> {
   const startedAt = Date.now()
-  const shieldyStats = normalizeShieldyStats((await axios(shieldyStatsUrl)).data)
-  const shieldy = shieldyUserCount(shieldyStats)
-  if (shieldy === undefined) {
-    throw new Error('Shieldy user count is unavailable')
-  }
-
-  const fixedCounts = await Promise.all([
-    goldenBorodutchCount(),
-    collectionCount(requiredEnv('TODORANT'), 'users'),
-    collectionCount(requiredEnv('TEMPLY'), 'users'),
+  const results = await Promise.all([
+    collectLiveHeadlineInputs(),
+    Promise.all([
+      getBotUsersForSpellerOptimized(
+        '@check_my_text_bot',
+        requiredEnv('CHECK_MY_TEXT_BOT'),
+        requiredEnv('CHECK_MY_TEXT_BOT_TOKEN')
+      ),
+      getBotUsersOptimized(
+        '@randymbot',
+        requiredEnv('RANDYM'),
+        requiredEnv('RANDYM_TOKEN'),
+        'chatId',
+        'chats',
+        {
+          additionalChatSources: [
+            { collectionName: 'raffles', fieldNames: ['chatId'] },
+            {
+              collectionName: 'chats',
+              fieldNames: ['editedChatId', 'adminChatIds'],
+            },
+          ],
+        }
+      ),
+      getBotUsersOptimized(
+        '@banofbot',
+        requiredEnv('BANOFBOT'),
+        requiredEnv('BANOFBOT_TOKEN')
+      ),
+      getBotUsersOptimized(
+        '@voicy_bot',
+        requiredEnv('VOICY'),
+        requiredEnv('VOICY_TOKEN'),
+        'id',
+        'chats',
+        {
+          additionalChatSources: [
+            {
+              collectionName: 'transcriptionjobs',
+              fieldNames: ['chatId', 'telegramChatId'],
+            },
+          ],
+        }
+      ),
+    ]),
   ])
-
-  const botResults = await Promise.all([
-    getBotUsersForSpellerOptimized(
-      '@check_my_text_bot',
-      requiredEnv('CHECK_MY_TEXT_BOT'),
-      requiredEnv('CHECK_MY_TEXT_BOT_TOKEN')
-    ),
-    getBotUsersOptimized(
-      '@randymbot',
-      requiredEnv('RANDYM'),
-      requiredEnv('RANDYM_TOKEN'),
-      'chatId',
-      'chats',
-      {
-        additionalChatSources: [
-          { collectionName: 'raffles', fieldNames: ['chatId'] },
-          {
-            collectionName: 'chats',
-            fieldNames: ['editedChatId', 'adminChatIds'],
-          },
-        ],
-      }
-    ),
-    getBotUsersOptimized(
-      '@banofbot',
-      requiredEnv('BANOFBOT'),
-      requiredEnv('BANOFBOT_TOKEN')
-    ),
-    getBotUsersOptimized(
-      '@voicy_bot',
-      requiredEnv('VOICY'),
-      requiredEnv('VOICY_TOKEN'),
-      'id',
-      'chats',
-      {
-        additionalChatSources: [
-          {
-            collectionName: 'transcriptionjobs',
-            fieldNames: ['chatId', 'telegramChatId'],
-          },
-        ],
-      }
-    ),
-  ])
+  const live = results[0]
+  const botResults = results[1]
+  const jevAntispam = live.jevAntispam
 
   const bots = {
     speller: botResults[0],
     randy: botResults[1],
     banofbot: botResults[2],
     voicy: botResults[3],
+    jevAntispam: jevAntispam.bot,
   }
   const components = {
-    shieldy: shieldy,
-    goldenBorodutch: fixedCounts[0],
-    todorant: fixedCounts[1],
-    temply: fixedCounts[2],
+    shieldy: live.shieldy,
+    goldenBorodutch: live.goldenBorodutch,
+    todorant: live.todorant,
+    temply: live.temply,
     speller: bots.speller.legacyUserCount,
     randy: bots.randy.legacyUserCount,
     banofbot: bots.banofbot.legacyUserCount,
     voicy: bots.voicy.legacyUserCount,
+    jevAntispam: bots.jevAntispam.legacyUserCount,
   }
   const total = Object.keys(components).reduce(function (sum, key) {
     return sum + components[key]
@@ -153,7 +190,15 @@ export async function runShadowCollection(): Promise<ShadowCollectionResult> {
     total: total,
     components: components,
     bots: bots,
+    projects: {
+      jevAntispam: jevAntispam.stats,
+    },
   }
+  return result
+}
+
+export async function runShadowCollection(): Promise<ShadowCollectionResult> {
+  const result = await collectStats()
   writeResultAtomically(result)
   return result
 }
