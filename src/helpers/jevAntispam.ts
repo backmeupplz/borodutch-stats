@@ -7,6 +7,14 @@ import {
 interface KnownChatRow {
   chatId: string
   successfulDeletions: string
+  processedMessages: string
+}
+
+export interface JevAntispamHistoryPoint {
+  date: string
+  knownChatCount: number
+  processedMessageCount: number
+  successfulDeletionCount: number
 }
 
 export interface JevAntispamStats {
@@ -15,6 +23,8 @@ export interface JevAntispamStats {
   reachableCommunityCount: number
   combinedCommunityAudience: number
   successfulDeletionCount: number
+  processedMessageCount?: number
+  history?: JevAntispamHistoryPoint[]
 }
 
 export interface JevAntispamCollection {
@@ -34,6 +44,7 @@ export function aggregateKnownChats(rows: KnownChatRow[]) {
   const privateIds = new Set<number>()
   const communityIds = new Set<number>()
   let successfulDeletionCount = 0
+  let processedMessageCount = 0
 
   for (const row of rows) {
     const chatId = safeInteger(row.chatId, 'known_chats.chat_id')
@@ -45,7 +56,6 @@ export function aggregateKnownChats(rows: KnownChatRow[]) {
       throw new Error('known_chats contains a duplicate chat_id')
     }
     ids.add(chatId)
-
     const deletions = safeInteger(
       row.successfulDeletions,
       'known_chats.successful_deletions'
@@ -57,6 +67,18 @@ export function aggregateKnownChats(rows: KnownChatRow[]) {
     if (!Number.isSafeInteger(successfulDeletionCount)) {
       throw new Error('successful deletion total is too large')
     }
+
+    const processed = safeInteger(
+      row.processedMessages,
+      'known_chats.processed_messages'
+    )
+    if (processed < 0) {
+      throw new Error('known_chats.processed_messages cannot be negative')
+    }
+    processedMessageCount += processed
+    if (!Number.isSafeInteger(processedMessageCount)) {
+      throw new Error('processed message total is too large')
+    }
   }
 
   if (!rows.length) {
@@ -66,6 +88,7 @@ export function aggregateKnownChats(rows: KnownChatRow[]) {
   return {
     privateIds,
     communityIds,
+    processedMessageCount,
     successfulDeletionCount,
   }
 }
@@ -89,7 +112,11 @@ export async function getJevAntispamStats(
     const result = await pool.query<KnownChatRow>(`
       SELECT
         chat_id::text AS "chatId",
-        successful_deletions::text AS "successfulDeletions"
+        successful_deletions::text AS "successfulDeletions",
+        COALESCE(
+          to_jsonb(known_chats)->>'processed_messages',
+          '0'
+        ) AS "processedMessages"
       FROM known_chats
     `)
     rows = result.rows
@@ -116,6 +143,7 @@ export async function getJevAntispamStats(
     combinedCommunityAudience:
       bot.reachability.totalGroupAudienceEstimate,
     successfulDeletionCount: aggregate.successfulDeletionCount,
+    processedMessageCount: aggregate.processedMessageCount,
   }
 
   return { stats, bot }

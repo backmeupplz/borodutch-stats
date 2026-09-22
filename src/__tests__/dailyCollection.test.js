@@ -4,15 +4,16 @@ const path = require('path')
 const {
   collectAndPublish,
   dailyCollectionFromSnapshot,
+  historyWithJevStats,
 } = require('../../dist/helpers/dailyCollection')
 const { readPublishedSnapshot } = require('../../dist/helpers/publishedSnapshot')
 
-function metrics(privateChats = 1, communities = 0, audience = 0) {
+function metrics(privateChats = 1, groups = 0, audience = 0, channels = 0) {
   return {
-    reachableChatCount: privateChats + communities,
+    reachableChatCount: privateChats + groups + channels,
     reachablePrivateChatCount: privateChats,
-    reachableGroupChatCount: communities,
-    reachableChannelCount: 0,
+    reachableGroupChatCount: groups,
+    reachableChannelCount: channels,
     totalGroupAudienceEstimate: audience,
     unavailableGroupMemberCount: 0,
     unreachableChatCount: 0,
@@ -46,9 +47,9 @@ function collection() {
   }
   const jevBot = {
     legacyUserCount: components.jevAntispam,
-    reachability: metrics(504, 123, 229771),
+    reachability: metrics(508, 122, 229767, 1),
     inventory: {
-      privateIds: 504,
+      privateIds: 508,
       groupIds: 150,
       checkpointedGroups: 150,
       sources: [],
@@ -70,11 +71,18 @@ function collection() {
     },
     projects: {
       jevAntispam: {
-        knownChatCount: 654,
-        privateChatCount: 504,
+        knownChatCount: 658,
+        privateChatCount: 508,
         reachableCommunityCount: 123,
-        combinedCommunityAudience: 229771,
+        combinedCommunityAudience: 229767,
         successfulDeletionCount: 5337,
+        processedMessageCount: 43210,
+        history: [{
+          date: '2026-09-22',
+          knownChatCount: 658,
+          processedMessageCount: 43210,
+          successfulDeletionCount: 5337,
+        }],
       },
     },
   }
@@ -148,7 +156,35 @@ describe('daily collection publication', () => {
     expect(result.components.shieldy).toBe(previous.components.shieldy + 10)
     expect(result.components.jevAntispam).toBe(230275)
     expect(result.projects.jevAntispam.successfulDeletionCount).toBe(5337)
+    expect(result.projects.jevAntispam.history).toEqual([{
+      date: '2026-09-22',
+      knownChatCount: 658,
+      processedMessageCount: 43210,
+      successfulDeletionCount: 5337,
+    }])
     expect(result.generatedAt).toBe('2026-09-22T18:00:00.000Z')
+  })
+
+  test('starts Jev history with one honest point and replaces a same-day retry', () => {
+    const stats = collection().projects.jevAntispam
+    const first = historyWithJevStats(
+      [],
+      stats,
+      new Date('2026-09-22T01:00:00.000Z')
+    )
+    const replacement = historyWithJevStats(
+      first,
+      { ...stats, processedMessageCount: 43211 },
+      new Date('2026-09-22T23:00:00.000Z')
+    )
+
+    expect(first).toHaveLength(1)
+    expect(replacement).toEqual([{
+      date: '2026-09-22',
+      knownChatCount: 658,
+      processedMessageCount: 43211,
+      successfulDeletionCount: 5337,
+    }])
   })
 
   test('bounds a stalled daily source before publication', async () => {

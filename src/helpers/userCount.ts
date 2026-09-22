@@ -86,6 +86,10 @@ export function refreshPublishedStatsSnapshot(force = false) {
       delete userCountSeparate[key]
     }
     Object.assign(userCountSeparate, snapshot.components)
+
+    for (const key of Object.keys(jevAntispamStats)) {
+      delete (jevAntispamStats as any)[key]
+    }
     if (snapshot.projects) {
       Object.assign(jevAntispamStats, snapshot.projects.jevAntispam)
     }

@@ -170,7 +170,7 @@ function validateJevAntispam(input: any) {
     value.combinedCommunityAudience,
     'projects.jevAntispam.combinedCommunityAudience'
   )
-  nonNegativeInteger(
+  const successfulDeletionCount = nonNegativeInteger(
     value.successfulDeletionCount,
     'projects.jevAntispam.successfulDeletionCount'
   )
@@ -200,6 +200,60 @@ function validateJevAntispam(input: any) {
     privateChatCount + combinedCommunityAudience
   ) {
     throw new Error('Jev headline contribution is internally inconsistent')
+  }
+
+  const hasHistoricalStats =
+    value.processedMessageCount !== undefined ||
+    value.history !== undefined
+  if (!hasHistoricalStats) {
+    return
+  }
+
+  const processedMessageCount = nonNegativeInteger(
+    value.processedMessageCount,
+    'projects.jevAntispam.processedMessageCount'
+  )
+  if (!Array.isArray(value.history) || value.history.length === 0) {
+    throw new Error('projects.jevAntispam.history must contain real daily data')
+  }
+
+  let previousDate = ''
+  for (const point of value.history) {
+    if (
+      !point ||
+      typeof point !== 'object' ||
+      typeof point.date !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(point.date) ||
+      !Number.isFinite(Date.parse(point.date + 'T00:00:00.000Z'))
+    ) {
+      throw new Error('Jev history date must be an ISO calendar day')
+    }
+    if (point.date <= previousDate) {
+      throw new Error('Jev history dates must be unique and ascending')
+    }
+    previousDate = point.date
+    nonNegativeInteger(
+      point.knownChatCount,
+      'projects.jevAntispam.history.knownChatCount'
+    )
+    nonNegativeInteger(
+      point.processedMessageCount,
+      'projects.jevAntispam.history.processedMessageCount'
+    )
+    nonNegativeInteger(
+      point.successfulDeletionCount,
+      'projects.jevAntispam.history.successfulDeletionCount'
+    )
+  }
+
+  const latest = value.history[value.history.length - 1]
+  if (
+    latest.date !== input.generatedAt.slice(0, 10) ||
+    latest.knownChatCount !== knownChatCount ||
+    latest.processedMessageCount !== processedMessageCount ||
+    latest.successfulDeletionCount !== successfulDeletionCount
+  ) {
+    throw new Error('Jev history tail does not match the current snapshot')
   }
 }
 

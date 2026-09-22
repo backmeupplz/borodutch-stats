@@ -100,26 +100,26 @@ describe('summary stats', () => {
     })
   })
 
-  test('labels Jev headline reach separately from ordinary user counts', () => {
+  test('labels Jev headline reach as users', () => {
     resetStats({
       userCountSeparate: {
         jevAntispam: 230275,
       },
       jevAntispam: {
-        knownChatCount: 654,
+        knownChatCount: 658,
         successfulDeletionCount: 5337,
       },
     })
 
     expect(summary()).toMatchObject({
       jevAntispam: {
-        knownChatCount: 654,
+        knownChatCount: 658,
         successfulDeletionCount: 5337,
       },
       projectCounts: {
         jevAntispam: {
           count: 230275,
-          label: 'people reached',
+          label: 'users',
           source: 'userCountSeparate',
         },
       },

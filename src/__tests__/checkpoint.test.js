@@ -64,6 +64,7 @@ describe('Checkpoint', () => {
       chatId: -4,
       reachable: true,
       kind: 'channel',
+      memberCount: 200,
       checkedAt: 4,
     })
     cp.appendResult({
@@ -78,7 +79,7 @@ describe('Checkpoint', () => {
     expect(m.reachablePrivateChatCount).toBe(1)
     expect(m.reachableGroupChatCount).toBe(2)
     expect(m.reachableChannelCount).toBe(1)
-    expect(m.totalGroupAudienceEstimate).toBe(50)
+    expect(m.totalGroupAudienceEstimate).toBe(250)
     expect(m.unavailableGroupMemberCount).toBe(1)
     expect(m.unreachableChatCount).toBe(1)
   })
