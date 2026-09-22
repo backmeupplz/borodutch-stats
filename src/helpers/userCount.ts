@@ -10,6 +10,12 @@ import {
 } from './publishedSnapshot'
 import { collectAndPublish } from './dailyCollection'
 import type { JevAntispamStats } from './jevAntispam'
+import {
+  collectionDelay,
+  failedCollectionRetryMs,
+  maximumTimerDelayMs,
+  withCollectionLock,
+} from './collectionSchedule'
 
 const Telegraf = require('telegraf')
 
@@ -119,8 +125,29 @@ export async function runCollection(): Promise<{
   reachability: typeof userCountReachability
   perBot: typeof userCountSeparate
 }> {
+  return withCollectionLock(publishedSnapshotPath + '.collection.lock', async () => {
+    installPublishedSeed(publishedSeedPath, publishedSnapshotPath)
+    const delay = collectionDelay(
+      readPublishedSnapshot(publishedSnapshotPath).publishedAt
+    )
+    if (delay > 0) {
+      refreshPublishedStatsSnapshot(true)
+      console.log(
+        '+ daily stats collection skipped; next due ' +
+          new Date(Date.now() + delay).toISOString()
+      )
+      return {
+        count: userCount.count,
+        reachability: userCountReachability,
+        perBot: userCountSeparate,
+      }
+    }
+    return collectNow()
+  })
+}
+
+async function collectNow() {
   const startedAt = Date.now()
-  installPublishedSeed(publishedSeedPath, publishedSnapshotPath)
   const snapshot = await collectAndPublish(publishedSnapshotPath)
 
   try {
@@ -163,8 +190,6 @@ export async function runCollection(): Promise<{
   }
 }
 
-const dailyCollectionIntervalMs = 24 * 60 * 60 * 1000
-const failedCollectionRetryMs = 60 * 60 * 1000
 let collectionTimer: ReturnType<typeof setTimeout> | undefined
 
 export function startDailyCollection() {
@@ -172,20 +197,34 @@ export function startDailyCollection() {
     return
   }
 
-  const collect = async () => {
-    let nextDelay = dailyCollectionIntervalMs
-    try {
-      await runCollection()
-    } catch (err) {
-      console.error('+ daily stats collection failed; retrying in one hour:', err)
-      nextDelay = failedCollectionRetryMs
-    }
-    collectionTimer = setTimeout(collect, nextDelay)
+  const schedule = (delay: number) => {
+    const boundedDelay = Math.min(delay, maximumTimerDelayMs)
+    console.log(
+      '+ daily stats next check ' + new Date(Date.now() + boundedDelay).toISOString()
+    )
+    collectionTimer = setTimeout(collect, boundedDelay)
     collectionTimer.unref()
   }
+  const collect = async () => {
+    try {
+      await runCollection()
+      schedule(Math.max(1000, collectionDelay(
+        readPublishedSnapshot(publishedSnapshotPath).publishedAt
+      )))
+    } catch (err) {
+      console.error('+ daily stats collection failed; retrying in one hour:', err)
+      schedule(failedCollectionRetryMs)
+    }
+  }
 
-  collectionTimer = setTimeout(collect, 60 * 1000)
-  collectionTimer.unref()
+  // Keep boot warmup, but never count merely because the process restarted.
+  try {
+    schedule(Math.max(60 * 1000, collectionDelay(
+      readPublishedSnapshot(publishedSnapshotPath).publishedAt
+    )))
+  } catch (_) {
+    schedule(60 * 1000)
+  }
 }
 
 function updateStats() {

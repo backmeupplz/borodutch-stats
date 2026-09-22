@@ -35,11 +35,22 @@ take hours and writes only `STATS_SHADOW_RESULT_PATH`; it is not the daily
 publication path.
 
 With `STATS_DAILY_COLLECTION_ENABLED=true`, the API server starts the same
-collector one minute after boot and repeats it every 24 hours after a successful
-publication. Failed collections keep the last known good snapshot and retry
+collector when 24 hours have elapsed since the persisted successful publication
+timestamp (UTC instants, not a wall-clock cron). Boot retains a one-minute minimum
+warmup but does not force a new count. Manual `collect-stats` commands share this
+daily gate. The next check is logged as an ISO timestamp. Failed collections keep the last known good snapshot and retry
 after one hour. Running it in the API process lets publication use the same
 `STATS_PUBLISHED_RESULT_PATH` volume the API already reads; keep a single API
-replica while this scheduler is enabled.
+replica while this scheduler is enabled. A kernel-held lock on the shared-volume
+`.collection.lock` excludes concurrent API/CLI publishers and same-version
+rolling overlap. It is released on process death; the lock file itself must not
+be removed, because deleting a held file would permit overlapping publishers.
+The production container supplies `/bin/flock`. **First rollout from the former
+exclusive-create lock requires draining the old process and confirming it is
+not collecting before starting the new scheduler:** the former lock and `flock`
+do not coordinate if an old collection is already in progress. Future-dated
+published snapshots do not trigger early scans; long timer delays are split
+into safe checks.
 
 For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
 managed file. A valid newer seed is copied atomically into the persistent result
