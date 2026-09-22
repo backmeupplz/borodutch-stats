@@ -19,6 +19,8 @@ app.use(bodyParser())
 app.use(router.routes())
 app.use(router.allowedMethods())
 app.listen(port)
-startDailyCollection()
+if (process.env.STATS_DAILY_COLLECTION_ENABLED === 'true') {
+  startDailyCollection()
+}
 
 console.log(`Koa application is up and running on port ${port}`)

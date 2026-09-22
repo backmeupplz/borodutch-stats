@@ -34,9 +34,12 @@ deployment-platform one-shot runs.
 take hours and writes only `STATS_SHADOW_RESULT_PATH`; it is not the daily
 publication path.
 
-The server starts the same collector one minute after boot and repeats it every
-24 hours after a successful publication. Failed collections keep the last known
-good snapshot and retry after one hour.
+With `STATS_DAILY_COLLECTION_ENABLED=true`, the API server starts the same
+collector one minute after boot and repeats it every 24 hours after a successful
+publication. Failed collections keep the last known good snapshot and retry
+after one hour. Running it in the API process lets publication use the same
+`STATS_PUBLISHED_RESULT_PATH` volume the API already reads; keep a single API
+replica while this scheduler is enabled.
 
 For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
 managed file. A valid newer seed is copied atomically into the persistent result
@@ -59,6 +62,7 @@ path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
 | `JEV_DATABASE_URL`  | Private read access to Jev Antispam's PostgreSQL database                   |
 | `JEV_TELEGRAM_BOT_TOKEN` | Jev Antispam Telegram token for current community member counts       |
 | `PORT`              | Optional HTTP port supplied by the deployment platform; defaults to `1339`  |
+| `STATS_DAILY_COLLECTION_ENABLED` | Set to `true` on one API replica to run the daily publisher   |
 | `STRIPE_SECRET_KEY` | Optional Stripe secret key for `/arr`; omit locally to return empty ARR data |
 
 ## Public endpoints
