@@ -13,6 +13,7 @@ import type { JevAntispamStats } from './jevAntispam'
 import {
   collectionDelay,
   failedCollectionRetryMs,
+  maximumTimerDelayMs,
   withCollectionLock,
 } from './collectionSchedule'
 
@@ -197,10 +198,11 @@ export function startDailyCollection() {
   }
 
   const schedule = (delay: number) => {
+    const boundedDelay = Math.min(delay, maximumTimerDelayMs)
     console.log(
-      '+ daily stats next check ' + new Date(Date.now() + delay).toISOString()
+      '+ daily stats next check ' + new Date(Date.now() + boundedDelay).toISOString()
     )
-    collectionTimer = setTimeout(collect, delay)
+    collectionTimer = setTimeout(collect, boundedDelay)
     collectionTimer.unref()
   }
   const collect = async () => {

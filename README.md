@@ -41,10 +41,16 @@ warmup but does not force a new count. Manual `collect-stats` commands share thi
 daily gate. The next check is logged as an ISO timestamp. Failed collections keep the last known good snapshot and retry
 after one hour. Running it in the API process lets publication use the same
 `STATS_PUBLISHED_RESULT_PATH` volume the API already reads; keep a single API
-replica while this scheduler is enabled. A shared-volume `.collection.lock`
-prevents concurrent CLI/rollout publishers. If a process is killed during collection,
-the lock deliberately fails closed: confirm no collector is running before removing
-only that lock file; never delete the snapshot or checkpoints.
+replica while this scheduler is enabled. A kernel-held lock on the shared-volume
+`.collection.lock` excludes concurrent API/CLI publishers and same-version
+rolling overlap. It is released on process death; the lock file itself must not
+be removed, because deleting a held file would permit overlapping publishers.
+The production container supplies `/bin/flock`. **First rollout from the former
+exclusive-create lock requires draining the old process and confirming it is
+not collecting before starting the new scheduler:** the former lock and `flock`
+do not coordinate if an old collection is already in progress. Future-dated
+published snapshots do not trigger early scans; long timer delays are split
+into safe checks.
 
 For a first deployment, `STATS_PUBLISHED_SEED_PATH` may point to a read-only
 managed file. A valid newer seed is copied atomically into the persistent result
