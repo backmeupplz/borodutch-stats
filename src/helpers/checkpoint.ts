@@ -14,6 +14,7 @@ import { createInterface } from 'readline'
 
 const CHECKPOINT_DIR =
   process.env.STATS_CHECKPOINT_DIR || join(__dirname, '../../checkpoints')
+const CHECKPOINT_VERSION = 2
 
 export interface ChatResult {
   chatId: number
@@ -38,6 +39,7 @@ export interface CheckpointMetrics {
 export class Checkpoint {
   private filePath: string
   private processedIds = new Set<number>()
+  private legacyMigrationIds = new Set<number>()
   private results = new Map<number, ChatResult>()
   private writeStream: any = null
 
@@ -70,6 +72,15 @@ export class Checkpoint {
         try {
           const entry = JSON.parse(line)
           self.processedIds.add(entry.id)
+          if (
+            (typeof entry.v !== 'number' || entry.v < CHECKPOINT_VERSION) &&
+            entry.r === false &&
+            entry.k === 'unknown'
+          ) {
+            self.legacyMigrationIds.add(entry.id)
+          } else {
+            self.legacyMigrationIds.delete(entry.id)
+          }
           self.results.set(entry.id, {
             chatId: entry.id,
             canonicalChatId:
@@ -104,11 +115,16 @@ export class Checkpoint {
     return this.results.get(chatId)
   }
 
+  needsLegacyMigrationRefresh(chatId: number): boolean {
+    return this.legacyMigrationIds.has(chatId)
+  }
+
   /**
    * Append a single result to the checkpoint file (and in-memory cache).
    */
   appendResult(result: ChatResult): void {
     const line = JSON.stringify({
+      v: CHECKPOINT_VERSION,
       id: result.chatId,
       c: result.canonicalChatId,
       r: result.reachable,
@@ -123,6 +139,7 @@ export class Checkpoint {
     }
     this.writeStream.write(line + '\n')
     this.processedIds.add(result.chatId)
+    this.legacyMigrationIds.delete(result.chatId)
     this.results.set(result.chatId, result)
   }
 
