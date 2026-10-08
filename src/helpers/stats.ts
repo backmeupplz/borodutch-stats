@@ -47,8 +47,17 @@ async function updateStats() {
   }
   // Voicy
   try {
+    const voicyStats = (
+      await axios.get('https://pay.voicybot.com/statsfornikita')
+    ).data
+    // Voicy sends whole Mongo documents (~490 KB); the site only charts date + count
+    if (Array.isArray(voicyStats.messageStats)) {
+      voicyStats.messageStats = voicyStats.messageStats.map(
+        ({ date, count }: { date: string; count: number }) => ({ date, count })
+      )
+    }
     stats.voicy = {
-      stats: (await axios.get('https://pay.voicybot.com/statsfornikita')).data,
+      stats: voicyStats,
       cloudflare: await cloudflareData(
         'a2931825c44695714557a87d1ceb4699',
         'voicy'
