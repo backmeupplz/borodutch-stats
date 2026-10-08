@@ -78,6 +78,25 @@ describe('summary stats', () => {
     expect(data.userCount.history).toBeUndefined()
   })
 
+  test('uses Veydrift transactions as its count without adding them to users', () => {
+    resetStats({
+      veydrift: {
+        summary: { players: 97, transactions: 369299 },
+        daily: [{ date: '2026-10-08', transactions: 7312 }],
+      },
+    })
+
+    expect(deriveProjectCounts(mockStats).veydrift).toEqual({
+      count: 369299,
+      label: 'transactions',
+      source: 'veydrift.summary.transactions',
+    })
+    expect(summary().userCountSeparate).toEqual({})
+    expect(summary().veydrift).toEqual({
+      summary: { players: 97, transactions: 369299 },
+    })
+  })
+
   test('prefers a positive cached user count over scalar summary fallbacks', () => {
     resetStats({
       voicy: {

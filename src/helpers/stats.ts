@@ -148,6 +148,15 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
+  // Veydrift (onchain game stats, only the last 30 days are published)
+  try {
+    const { summary, daily } = (
+      await axios.get('https://stats.veydrift.com/api/stats')
+    ).data
+    stats.veydrift = { summary, daily }
+  } catch (err) {
+    console.log(err)
+  }
   // Check my text bot
   try {
     stats.checkMyTextBot = await getCheckMyTextBot()
