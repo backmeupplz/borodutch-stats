@@ -1,6 +1,6 @@
 import { stats } from './stats'
 
-type CountLabel = 'users' | 'chats'
+type CountLabel = 'users' | 'chats' | 'transactions'
 
 export type ProjectCountSummary = {
   count: number
@@ -72,6 +72,11 @@ export function deriveProjectCounts(source: any): {
       'todorant.db.userCount'
     ),
     temply: count(source.temply?.userCount, 'users', 'temply.userCount'),
+    veydrift: count(
+      source.veydrift?.summary?.transactions,
+      'transactions',
+      'veydrift.summary.transactions'
+    ),
     checkMyTextBot: count(
       source.checkMyTextBot?.userCount,
       'users',
