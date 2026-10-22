@@ -66,15 +66,6 @@ async function updateStats() {
   } catch (err) {
     console.log(err)
   }
-  // Fondu
-  try {
-    stats.fondu = await cloudflareData(
-      '1ec35cf14fe9fdcd97290a42af2deee8',
-      'fondu'
-    )
-  } catch (err) {
-    console.log(err)
-  }
   // Borodutch
   try {
     stats.borodutch = await cloudflareData(
@@ -89,33 +80,6 @@ async function updateStats() {
     stats.pleaseno = await cloudflareData(
       '40a2eeccaffd2df433952dc4ac924dde',
       'pleaseno'
-    )
-  } catch (err) {
-    console.log(err)
-  }
-  // Fix sleep
-  try {
-    stats.fixsleep = await cloudflareData(
-      '5046fa978449269a5ede9bda4ca2cc9a',
-      'fixsleep'
-    )
-  } catch (err) {
-    console.log(err)
-  }
-  // Magic pill
-  try {
-    stats.magicpill = await cloudflareData(
-      '48cef4a697e3a544873c5799d4bcd96f',
-      'magicpill'
-    )
-  } catch (err) {
-    console.log(err)
-  }
-  // Resetbot
-  try {
-    stats.resetbot = await cloudflareData(
-      '5310b8bd048921d0d433392061172c90',
-      'resetbot'
     )
   } catch (err) {
     console.log(err)
