@@ -74,6 +74,7 @@ path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
 | `JEV_TELEGRAM_BOT_TOKEN` | Jev Antispam Telegram token for current community member counts       |
 | `PORT`              | Optional HTTP port supplied by the deployment platform; defaults to `1339`  |
 | `STATS_DAILY_COLLECTION_ENABLED` | Set to `true` on one API replica to run the daily publisher   |
+| `VIDEODOWNLOADBOT_STATS_URL` | Optional VideoDownloadBot stats endpoint; defaults to `http://bots-videodownloadbot:8080/stats` on the shared Docker network |
 | `STRIPE_SECRET_KEY` | Optional Stripe secret key for `/arr`; omit locally to return empty ARR data |
 
 ## Public endpoints

@@ -77,6 +77,18 @@ export function deriveProjectCounts(source: any): {
       'transactions',
       'veydrift.summary.transactions'
     ),
+    videoDownloadBot: firstCount(
+      count(
+        source.videoDownloadBot?.userCount,
+        'users',
+        'videoDownloadBot.userCount'
+      ),
+      count(
+        source.videoDownloadBot?.chatCount,
+        'chats',
+        'videoDownloadBot.chatCount'
+      )
+    ),
     checkMyTextBot: count(
       source.checkMyTextBot?.userCount,
       'users',
