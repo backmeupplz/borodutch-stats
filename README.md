@@ -83,6 +83,7 @@ path. `STATS_MINIMUM_PUBLISH_TOTAL` is an optional safety floor and defaults to
 - `/summary` returns the same object with array histories removed for fast initial page loads.
 - `/stats/:project` returns detailed stats for one project code, with `randy` mapped to `randym` and `speller` mapped to `checkMyTextBot`.
 - `/count` keeps returning the homepage user count and history.
+- `/new-chats` returns, for Voicy and Banofbot, new private chats per UTC day for the last 45 days (today is `partial`), as `organic` and `withPayload` (a campaign `/start` payload arrived within 10 minutes of the chat's creation), in total and per stored `languages` code. Each bot's `language` and `payload` fields say what the database records. Counts only; refreshed every 3 hours.
 - `/arr` returns 12 monthly points with `monthlyRecurringRevenue` and `annualRecurringRevenue`. It includes paid Stripe invoices with subscription-backed recurring line items and excludes one-time invoice items, usage without recurring price metadata, unpaid invoices, taxes, refunds, disputes, and non-Stripe revenue. Without Stripe config it returns zeroed chart data with `configured: false`.
 
 Also, please, consider looking at `.env.sample`.

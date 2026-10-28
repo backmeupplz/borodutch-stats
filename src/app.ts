@@ -10,6 +10,7 @@ import * as cors from '@koa/cors'
 import { gzipSync } from 'zlib'
 import { startDailyCollection } from './helpers/userCount'
 import { startAudience } from './helpers/audience'
+import { startNewChats } from './helpers/newChats'
 
 const app = new Koa()
 const router = loadControllers(`${__dirname}/controllers`, { recurse: true })
@@ -43,5 +44,6 @@ if (process.env.STATS_DAILY_COLLECTION_ENABLED === 'true') {
 }
 
 startAudience()
+startNewChats()
 
 console.log(`Koa application is up and running on port ${port}`)

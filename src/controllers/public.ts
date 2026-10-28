@@ -5,6 +5,7 @@ import { arr } from '../helpers/arr'
 import { projectStats, summary } from '../helpers/summary'
 import { stats } from '../helpers/stats'
 import { audience } from '../helpers/audience'
+import { newChats } from '../helpers/newChats'
 import {
   refreshPublishedStatsSnapshot,
   userCount,
@@ -48,6 +49,12 @@ export default class {
   @Get('audience')
   audience(ctx: Context) {
     ctx.body = audience
+  }
+
+  // New private chats per day by language and /start payload, counts only (Prime Radiant's experiments)
+  @Get('new-chats')
+  newChats(ctx: Context) {
+    ctx.body = newChats
   }
 
   @Get('arr')
