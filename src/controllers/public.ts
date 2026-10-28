@@ -4,6 +4,7 @@ import { Controller, Get } from 'koa-router-ts'
 import { arr } from '../helpers/arr'
 import { projectStats, summary } from '../helpers/summary'
 import { stats } from '../helpers/stats'
+import { audience } from '../helpers/audience'
 import {
   refreshPublishedStatsSnapshot,
   userCount,
@@ -41,6 +42,12 @@ export default class {
   reachability(ctx: Context) {
     refreshPublishedStatsSnapshot()
     ctx.body = userCountReachability
+  }
+
+  // Chats per bot by type and recency of activity, counts only (Prime Radiant's audience catalog)
+  @Get('audience')
+  audience(ctx: Context) {
+    ctx.body = audience
   }
 
   @Get('arr')
