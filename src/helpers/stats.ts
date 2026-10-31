@@ -13,6 +13,7 @@ import { getBanofbot } from './banofbot'
 import { getTodorant } from './todorant'
 import { getCheckMyTextBot } from './checkMyTextBot'
 import { getVideoDownloadBot } from './videoDownloadBot'
+import { getGithub } from './github'
 import { normalizeShieldyStats, shieldyStatsUrl } from './shieldy'
 
 export let stats: any = {}
@@ -131,6 +132,12 @@ async function updateStats() {
   // VideoDownloadBot
   try {
     stats.videoDownloadBot = await getVideoDownloadBot()
+  } catch (err) {
+    console.log(err.message)
+  }
+  // GitHub stars and release/package downloads
+  try {
+    stats.github = await getGithub(stats.github)
   } catch (err) {
     console.log(err.message)
   }
