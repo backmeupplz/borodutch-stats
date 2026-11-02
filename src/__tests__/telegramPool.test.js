@@ -2,13 +2,15 @@ const { TelegramPool } = require('../../dist/helpers/telegramPool')
 
 describe('TelegramPool', () => {
   test('limits concurrency', async () => {
+    // no rate limit: every task the pool lets start starts at once
     const pool = new TelegramPool({
       concurrency: 2,
-      ratePerSecond: 1000,
+      ratePerSecond: Infinity,
       maxRetries: 3,
     })
     let running = 0
     let maxRunning = 0
+    const waiting = []
 
     const tasks = []
     for (let i = 0; i < 10; i++) {
@@ -18,8 +20,9 @@ describe('TelegramPool', () => {
           if (running > maxRunning) {
             maxRunning = running
           }
+          // runs until the test finishes it
           await new Promise(function (resolve) {
-            setTimeout(resolve, 50)
+            waiting.push(resolve)
           })
           running--
           return 'done'
@@ -27,15 +30,18 @@ describe('TelegramPool', () => {
       )
     }
 
-    await Promise.all(tasks)
-    expect(maxRunning).toBeLessThanOrEqual(2)
+    const settled = () => new Promise(function (resolve) { setImmediate(resolve) })
+    // once all the pool would start has started, finish the oldest
+    for (await settled(); waiting.length > 0; await settled()) waiting.shift()()
+    expect(await Promise.all(tasks)).toEqual(Array(10).fill('done'))
+    expect(maxRunning).toBe(2)
     pool.destroy()
   })
 
   test('rate limits task starts', async () => {
     const pool = new TelegramPool({
       concurrency: 10,
-      ratePerSecond: 10,
+      ratePerSecond: 100,
       maxRetries: 3,
     })
     const starts = []
@@ -52,8 +58,9 @@ describe('TelegramPool', () => {
 
     await Promise.all(tasks)
     expect(starts.length).toBe(5)
+    // four gaps of 10 ms; without the limit they'd all start at once
     const duration = starts[starts.length - 1] - starts[0]
-    expect(duration).toBeGreaterThanOrEqual(350)
+    expect(duration).toBeGreaterThanOrEqual(30)
     pool.destroy()
   })
 

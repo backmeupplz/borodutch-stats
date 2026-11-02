@@ -14,19 +14,46 @@ jobs:
     runs-on: ${{ (github.event_name != 'pull_request' || contains(fromJSON('["backmeupplz","renovate","claude"]'), github.event.pull_request.user.login)) && 'macos-latest' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      # A Mac runner keeps a clone in its tool cache and fetches only what's new into it
+      - name: Checkout
+        if: runner.os == 'macOS'
+        env:
+          SHA: ${{ github.sha }}
+          URL: ${{ github.server_url }}/${{ github.repository }}
+          TOKEN: ${{ github.token }}
+        run: |
+          m="$RUNNER_TOOL_CACHE/borodutch-stats.git"
+          [ -d "$m" ] || git init -q --bare "$m"
+          git -C "$m" -c http.extraHeader="Authorization: basic $(printf 'x-access-token:%s' "$TOKEN" | base64)" fetch -q --no-tags "$URL" "+${SHA}:refs/ci/head"
+          find . -mindepth 1 -delete
+          git init -q . && echo "$m/objects" > .git/objects/info/alternates
+          git -c advice.detachedHead=false checkout -q --detach "$SHA"
+      - if: runner.os == 'Linux'
+        uses: actions/checkout@v4
       # Production's Node major (.nvmrc); the Mac runners keep their tool cache, so this is a cache hit there
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      # Linux caches node_modules (a hit skips the install). On the Mac yarn keeps its cache per runner
-      # instance: yarn 1 corrupts a cache shared by concurrent installs
+      # Linux caches node_modules (a hit skips the install). A Mac runner keeps one install per lockfile and Node ABI in
+      # its tool cache, linked in; yarn's own cache stays per runner instance: yarn 1 corrupts a cache shared by
+      # concurrent installs
       - id: modules
         if: runner.os == 'Linux'
         uses: actions/cache@v4
         with:
           path: node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('yarn.lock', '.nvmrc') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
+      - if: runner.os == 'Linux' && steps.modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --non-interactive --cache-folder "$RUNNER_TOOL_CACHE/yarn"
+      - if: runner.os == 'macOS'
+        run: |
+          c="$RUNNER_TOOL_CACHE/borodutch-stats-modules"
+          key=$(shasum -a 256 yarn.lock | cut -c1-16)-$(node -p process.versions.modules)
+          if [ ! -d "$c/$key" ]; then
+            yarn install --frozen-lockfile --non-interactive --cache-folder "$RUNNER_TOOL_CACHE/yarn"
+            rm -rf "$c/$key.tmp" && mkdir -p "$c/$key.tmp" && mv node_modules "$c/$key.tmp/" && mv "$c/$key.tmp" "$c/$key"
+          fi
+          touch "$c/$key" && ln -s "$c/$key/node_modules" node_modules
+          # installs no run has used for a week go
+          find "$c" -mindepth 1 -maxdepth 1 -mtime +7 -exec rm -rf {} +
       - run: yarn -s test

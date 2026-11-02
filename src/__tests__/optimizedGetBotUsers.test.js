@@ -1,9 +1,14 @@
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
+
+// Checkpoints of its own, so this file runs alongside checkpoint.test.js
+const CHECKPOINT_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'stats-checkpoints-'))
+process.env.STATS_CHECKPOINT_DIR = CHECKPOINT_DIR
 
 function cleanupCheckpoints() {
   try {
-    fs.rmSync(path.join(__dirname, '../../checkpoints'), {
+    fs.rmSync(CHECKPOINT_DIR, {
       recursive: true,
       force: true,
     })
@@ -321,10 +326,7 @@ describe('getBotUsersFromChatIdsOptimized', () => {
   })
 
   test('repairs a migrated community from a pre-versioned checkpoint', async () => {
-    const checkpointPath = path.join(
-      __dirname,
-      '../../checkpoints/legacy-migrated-community-bot.jsonl'
-    )
+    const checkpointPath = path.join(CHECKPOINT_DIR, 'legacy-migrated-community-bot.jsonl')
     fs.mkdirSync(path.dirname(checkpointPath), { recursive: true })
     fs.writeFileSync(
       checkpointPath,
@@ -391,10 +393,7 @@ describe('getBotUsersFromChatIdsOptimized', () => {
   })
 
   test('keeps checkpointed channel subscribers in legacy and audience totals', async () => {
-    const checkpointPath = path.join(
-      __dirname,
-      '../../checkpoints/test-group-and-channel-bot.jsonl'
-    )
+    const checkpointPath = path.join(CHECKPOINT_DIR, 'test-group-and-channel-bot.jsonl')
     fs.mkdirSync(path.dirname(checkpointPath), { recursive: true })
     fs.writeFileSync(
       checkpointPath,

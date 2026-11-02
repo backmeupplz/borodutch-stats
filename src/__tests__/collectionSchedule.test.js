@@ -56,8 +56,9 @@ test('SIGKILL holder releases lock without unlink; restart runs one due collecti
     await expect(runCollection()).rejects.toMatchObject({ code: 'EEXIST' })
     expect(collect).not.toHaveBeenCalled()
     holder.kill('SIGKILL')
-    await new Promise(resolve => holder.once('exit', resolve))
-    // The lock's child observes the dead parent's closed pipe and exits.
+    // The lock's child observes the dead parent's closed pipe and exits; it shares the holder's stderr, so the holder
+    // closes once that child is gone too.
+    await new Promise(resolve => holder.once('close', resolve))
     for (let attempt = 0; attempt < 30 && collect.mock.calls.length === 0; attempt++) {
       try {
         await runCollection()

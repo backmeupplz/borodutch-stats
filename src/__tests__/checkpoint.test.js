@@ -1,8 +1,11 @@
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
-const { Checkpoint } = require('../../dist/helpers/checkpoint')
 
-const CHECKPOINT_DIR = path.join(__dirname, '../../checkpoints')
+// Checkpoints of its own, so this file runs alongside optimizedGetBotUsers.test.js
+const CHECKPOINT_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'stats-checkpoints-'))
+process.env.STATS_CHECKPOINT_DIR = CHECKPOINT_DIR
+const { Checkpoint } = require('../../dist/helpers/checkpoint')
 
 function cleanupCheckpoints() {
   try {
@@ -24,9 +27,6 @@ describe('Checkpoint', () => {
     })
     await cp.close()
 
-    await new Promise(function (resolve) {
-      setTimeout(resolve, 50)
-    })
 
     const cp2 = new Checkpoint('test-bot')
     await cp2.load()
@@ -133,9 +133,6 @@ describe('Checkpoint', () => {
     })
     await cp.close()
 
-    await new Promise(function (resolve) {
-      setTimeout(resolve, 50)
-    })
 
     const cp2 = new Checkpoint('resume-test')
     await cp2.load()
@@ -179,9 +176,6 @@ describe('Checkpoint', () => {
       checkedAt: 1,
     })
     await cp.close()
-    await new Promise(function (resolve) {
-      setTimeout(resolve, 50)
-    })
 
     expect(fs.existsSync(cp.filePath)).toBe(true)
     cp.remove()
