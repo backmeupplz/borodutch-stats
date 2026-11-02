@@ -11,7 +11,7 @@ permissions:
 jobs:
   check:
     # Our own PRs and pushes run on the Mac runners; outsiders' PRs (AGit via the github bot) on Linux
-    runs-on: ${{ (github.event_name != 'pull_request' || contains(fromJSON('["backmeupplz","renovate","claude"]'), github.event.pull_request.user.login)) && 'macos-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ (github.event_name != 'pull_request' || contains(fromJSON('["backmeupplz","renovate","claude","radiant"]'), github.event.pull_request.user.login)) && 'macos-latest' || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       # A Mac runner keeps a clone in its tool cache and fetches only what's new into it
