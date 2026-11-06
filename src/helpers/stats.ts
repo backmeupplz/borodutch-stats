@@ -105,7 +105,7 @@ async function updateStats() {
   // Todorant
   try {
     stats.todorant = {
-      db: await getTodorant(),
+      db: await getTodorant(stats.todorant?.db?.campaignDaily),
       cloudflare: await cloudflareData(
         '04eee73f1a96a2ef34c12e1f79936104',
         'todorant'
