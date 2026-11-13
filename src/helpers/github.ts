@@ -10,6 +10,7 @@ export const projectRepos: { [code: string]: string[] } = {
   agentboard: ['backmeupplz/agentboard'],
   absplus: ['backmeupplz/absplus'],
   meshplus: ['backmeupplz/meshtastic-plus'],
+  vancouver: ['backmeupplz/vancouver'],
   voicy: ['backmeupplz/voicy'],
   myground: ['backmeupplz/myground'],
   banofbot: ['backmeupplz/banofbot'],
