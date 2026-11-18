@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",
-    "@types/axios": "^0.14.0",
     "@types/dotenv": "^6.1.1",
     "@types/node": "^12.7.2",
     "axios": "^0.34.0",
