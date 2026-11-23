@@ -25,6 +25,7 @@ export const projectRepos: { [code: string]: string[] } = {
   shieldy: ['1inch/shieldy'],
   borodutch: ['backmeupplz/borodutch', 'backmeupplz/borodutch-stats'],
   temply: ['backmeupplz/temply'],
+  plainapk: ['backmeupplz/plainapk'],
 }
 
 // Registry packages, counted as the project's downloads too
