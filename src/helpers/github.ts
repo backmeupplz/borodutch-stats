@@ -27,6 +27,7 @@ export const projectRepos: { [code: string]: string[] } = {
   temply: ['backmeupplz/temply'],
   plainapk: ['backmeupplz/plainapk'],
   plainscreener: ['backmeupplz/plainscreener'],
+  homestill: ['backmeupplz/homestill'],
 }
 
 // Registry packages, counted as the project's downloads too
